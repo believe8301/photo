@@ -1,0 +1,27 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"title": {
+			"description": "名称"
+		},
+		"state": {
+			"description": "状态，是否启用 1启用，2禁用"
+		},
+		"isDel": {
+			"description": "状态，是否删除"
+		},
+		"sort": {
+			"description": "排序"
+		}
+	}
+}
