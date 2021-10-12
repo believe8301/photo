@@ -3,7 +3,8 @@
         {
             "path": "pages/index/index",
             "style": {
-                "navigationStyle": "custom"
+                "navigationStyle": "custom",
+				"navigationBarTextStyle": "white"
             }
         }
         ,{
@@ -12,6 +13,16 @@
             {
                 "navigationBarTitleText": "头像"
                 // "navigationStyle": "custom"
+            }
+            
+        }
+        ,{
+            "path" : "pages/save-success/save-success",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "保存",
+                "navigationStyle": "custom",
+				"navigationBarTextStyle": "white"
             }
             
         }

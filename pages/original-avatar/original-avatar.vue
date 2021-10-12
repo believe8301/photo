@@ -13,27 +13,16 @@
 export default {
 	data() {
 		return {
-			imageList: []
+			imageList: [],
+			shareInfo: uni.getStorageSync('shareInfo')
 		};
 	},
 	onLoad() {},
 	onShareAppMessage: function() {
-		return {
-			title: '我刚刚换上了国庆头像，你也来领取一个吧',
-			desc: '领取你的国庆头像，为祖国加油',
-			imageUrl: '/static/share.jpg',
-			path: '/pages/index/index',
-			success: function(e) {}
-		};
+		return this.shareInfo;
 	},
 	onShareTimeline: function() {
-		return {
-			title: '我刚刚换上了国庆头像，你也来领取一个吧',
-			desc: '领取你的国庆头像，为祖国加油',
-			imageUrl: '/static/share.jpg',
-			path: '/pages/index/index',
-			success: function(e) {}
-		};
+		return this.shareInfo;
 	},
 	onLoad() {
 		this.getUserImagesByOpenId();

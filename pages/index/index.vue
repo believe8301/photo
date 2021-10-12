@@ -37,9 +37,9 @@
 			</view>
 		</view>
 		<view class="btn-card">
-			<button v-if="userInfo" class="action-btn primary-btn" @click="navOriginal()">原头像</button>
-			<button class="action-btn primary-btn" v-else open-type="getUserInfo" @click="getUserProfile('userLogin')">原头像</button>
-			<button class="action-btn primary-btn" @click="shareFc()">原头像</button>
+			<button v-if="userInfo" class="primary-btn" @click="navOriginal()">原头像</button>
+			<button class="primary-btn" v-else open-type="getUserInfo" @click="getUserProfile('userLogin')">原头像</button>
+			<button open-type="share" class="share-btn">发给朋友</button>
 		</view>
 		<view class="hideCanvasView">
 			<canvas
@@ -197,32 +197,48 @@ export default {
 			currentImage: {},
 			currentIndex: 0,
 			imageList: [],
-			categoriesList: []
+			categoriesList: [],
+			shareInfo: {}
 		};
 	},
 	onLoad() {
 		this.init();
 		this.getCategoriesList();
+		this.getShareInfo();
 	},
 	onShareAppMessage: function() {
-		return {
-			title: '我刚刚换上了国庆头像，你也来领取一个吧',
-			desc: '领取你的国庆头像，为祖国加油',
-			imageUrl: '/static/share.jpg',
-			path: '/pages/index/index',
-			success: function(e) {}
-		};
+		return this.shareInfo;
 	},
 	onShareTimeline: function() {
-		return {
-			title: '我刚刚换上了国庆头像，你也来领取一个吧',
-			desc: '领取你的国庆头像，为祖国加油',
-			imageUrl: '/static/share.jpg',
-			path: '/pages/index/index',
-			success: function(e) {}
-		};
+		return this.shareInfo;
 	},
 	methods: {
+		/**
+		 * 获取分享字典
+		 */
+		getShareInfo() {
+			uni.showLoading({
+				mask: true
+			});
+			uniCloud
+				.callFunction({
+					name: 'code-mag',
+					data: { type: 'mpweixinGet' }
+				})
+				.then(res => {
+					this.shareInfo = {...res.result.data[0], imageUrl: res.result.data[0].image_url};
+					uni.setStorageSync('shareInfo', this.shareInfo)
+				})
+				.catch(err => {
+					uni.showModal({
+						content: err.message || '请求服务失败',
+						showCancel: false
+					});
+				})
+				.finally(() => {
+					uni.hideLoading();
+				});
+		},
 		/**
 		 * 获取分类
 		 */
@@ -455,13 +471,10 @@ export default {
 			uni.saveImageToPhotosAlbum({
 				filePath: _self.posterImage,
 				success: function() {
-					uni.hideLoading();
-					uni.showToast({
-						title: '保存成功',
-						icon: 'none'
-					});
+					_self.saveImageInfo();
+					uni.setStorageSync('currentImage', _self.posterImage);
 				},
-				fail: function(AAAA) {
+				fail: function() {
 					uni.hideLoading();
 					uni.showToast({
 						title: '保存失败',
@@ -469,6 +482,22 @@ export default {
 					});
 				}
 			});
+		},
+		/**
+		 * 头像
+		 */
+		saveImageInfo() {
+			uniCloud
+				.callFunction({
+					name: 'images',
+					data: { imageInfo: this.currentImage, type: 'imageUsed' }
+				})
+				.then(res => {
+					uni.hideLoading();
+					uni.navigateTo({
+						url: '/pages/save-success/save-success'
+					});
+				});
 		},
 		/**
 		 * @param {Object} type
@@ -498,11 +527,11 @@ export default {
 		 * 存储用户数据
 		 */
 		async postUserInfo(nickName, type) {
-			let that = this
+			let that = this;
 			this.code = await this.getWeixinCode();
 			uni.showLoading({
-				mask:false
-			})
+				mask: false
+			});
 			uniCloud
 				.callFunction({
 					name: 'user_mpweixin',
@@ -511,9 +540,9 @@ export default {
 				.then(res => {
 					uni.setStorageSync('user_info', res.result);
 					this.userInfo = res.result;
-					uni.hideLoading()
-					if (type==='userLogin') {
-						this.navOriginal()
+					uni.hideLoading();
+					if (type === 'userLogin') {
+						this.navOriginal();
 					}
 				});
 		},
@@ -582,39 +611,9 @@ export default {
 		justify-content: center;
 		align-items: center;
 		position: relative;
-		.image-center {
-			width: 300rpx;
-			height: 300rpx;
-			border-radius: 50rpx;
-			margin: 0 70rpx;
-		}
 		.iconfont {
 			color: #f7f8fa;
 			font-size: 80rpx;
-			font-weight: bold;
-		}
-	}
-	.btn-div {
-		padding: 50rpx;
-		display: flex;
-		justify-content: space-between;
-		.btn-left {
-			background-color: #f7f8fa;
-			box-shadow: 0px 4px 54px 0px rgba(108, 108, 108, 0.14);
-			padding: 0 70rpx;
-			height: 100rpx;
-			line-height: 100rpx;
-			border-radius: 80rpx;
-			color: #646566;
-			font-weight: bold;
-		}
-		.btn-right {
-			background-image: linear-gradient(90deg, #ff8c00, #ff4500);
-			padding: 0 100rpx;
-			height: 100rpx;
-			line-height: 100rpx;
-			border-radius: 80rpx;
-			color: #ffffff;
 			font-weight: bold;
 		}
 	}
@@ -719,10 +718,10 @@ export default {
 	padding: 30rpx 30rpx;
 	box-sizing: border-box;
 	width: 750rpx;
-	display: flex;
-	justify-content: space-between;
 	.primary-btn {
-		width: 200rpx;
+		width: 330rpx;
+		display: inline-block;
+		margin-right: 30rpx;
 		background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
 		border: 1rpx solid #ff7852;
 		border-radius: 48rpx;
@@ -730,6 +729,21 @@ export default {
 		color: #fff;
 		padding: 0;
 		font-size: 30rpx;
+		height: 90rpx;
+		line-height: 90rpx;
+	}
+	.share-btn {
+		width: 330rpx;
+		display: inline-block;
+		background: linear-gradient(97.71deg, #ffd01e, #ff8917 60%);
+		border: 1rpx solid #ff7852;
+		border-radius: 48rpx;
+		box-shadow: 0 12rpx 16rpx -8rpx rgba(255, 88, 35, 0.6);
+		color: #fff;
+		padding: 0;
+		font-size: 30rpx;
+		height: 90rpx;
+		line-height: 90rpx;
 	}
 }
 

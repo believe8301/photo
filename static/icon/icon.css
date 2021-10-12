@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id 2846383 */
-  src: url('https://at.alicdn.com/t/font_2846383_8izpo3huzd.ttf?t=1633022057878') format('truetype');;
+  src: url('https://at.alicdn.com/t/font_2846383_5kskfq3f9w.ttf?t=1634015685629') format('truetype');;
 }
 
 .iconfont {
@@ -9,6 +9,11 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+
+.icon-xiazai:before {
+  content: "\e608";
 }
 
 .icon-you:before {
