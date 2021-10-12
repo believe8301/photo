@@ -6,6 +6,7 @@
 				<view class="btn-card"><button class="primary-btn" @click="downLoadImage(item.image_url)">保存头像</button></view>
 			</view>
 		</view>
+		<view class="image-bottom"></view>
 	</view>
 </template>
 
@@ -42,7 +43,7 @@ export default {
 					data: { type: 'getUserImagesByOpenId', useId }
 				})
 				.then(res => {
-					this.imageList = res.result.data;
+					this.imageList= res.result.data;
 				})
 				.catch(err => {
 					uni.showModal({
@@ -130,26 +131,35 @@ export default {
 .content {
 	display: flex;
 	justify-content: space-between;
-	padding: 140rpx 100rpx;
+	padding: 12vh 30rpx 0;
+	height: 100vh;
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	background-size: 100% 100%;
-	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/0aa778cd-e304-4794-b88d-54f76940ba48.png);
+	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/5c68ee76-16d2-4c1a-ab82-032a3c8abd5d.png);
 	.image-div {
-		height: 85vh;
+		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/d8596aff-d3ec-4ce8-ae9e-78774efbd1a8.png);
+		height: 88vh;
+		padding: 30rpx 30rpx 350rpx;
+		border-radius: 20rpx;
+		width: 690rpx;
+		display: flex;
+		justify-content: space-between;
+		flex-wrap: wrap;
 		overflow-y: auto;
 		.image-unit {
-			width: 250;
-			height: 350rpx;
+			width: 300rpx;
+			height: 400rpx;
 			background-color: #ffffff;
 			box-shadow: 0px 5px 15px 0px rgba(224, 224, 224, 0.4);
 			border-radius: 50rpx;
 			overflow: hidden;
+			margin-bottom: 30rpx;
 			.image-card {
-				width: 250rpx;
-				height: 250rpx;
+				width: 300rpx;
+				height: 300rpx;
 			}
 			.btn-card {
 				padding: 10rpx 30rpx 30rpx;
@@ -168,6 +178,16 @@ export default {
 				}
 			}
 		}
+	}
+	.image-bottom {
+		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/4960fc70-f203-463c-8b9d-08594a96d8e1.png);
+		width: 750rpx;
+		height: 350rpx;
+		background-size: 100% 100%;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
 	}
 }
 </style>
