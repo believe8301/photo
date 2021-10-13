@@ -21,7 +21,7 @@
 				<!--  -->
 				<view class="avatar-div " id="avatar-container">
 					<image class="img" id="avatar-img" :src="avatarImage"></image>
-					<view class="empty-view " v-if="!avatarImage"><image class="empty" src="../../static/images/avatar_empty.svg"></image></view>
+					<view class="empty-view " v-if="!avatarImage"><image class="empty" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg"></image></view>
 					<image class="avatar-default " :src="currentImage.image_url" v-if="currentImage && currentImage.image_url"></image>
 				</view>
 
@@ -88,7 +88,6 @@ export default {
 		 */
 		getShareInfo() {
 			uni.showLoading({
-				title: '加载中',
 				mask: true
 			});
 			uniCloud
@@ -117,7 +116,6 @@ export default {
 		 */
 		getCategoriesList() {
 			uni.showLoading({
-				title: '加载中',
 				mask: true
 			});
 			uniCloud
@@ -253,8 +251,7 @@ export default {
 			}
 			try {
 				uni.showLoading({
-					title: '加载中',
-					mask: true
+					title: '加载中'
 				});
 				_app.log('准备生成:' + new Date());
 				const d = await getSharePoster({
@@ -408,8 +405,7 @@ export default {
 			this.code = await this.getWeixinCode();
 			if (type === 'userLogin') {
 				uni.showLoading({
-					title: '加载中',
-					mask: true
+					mask: false
 				});
 			}
 			uniCloud
