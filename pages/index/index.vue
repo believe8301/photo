@@ -226,8 +226,10 @@ export default {
 					data: { type: 'mpweixinGet' }
 				})
 				.then(res => {
-					this.shareInfo = {...res.result.data[0], imageUrl: res.result.data[0].image_url};
-					uni.setStorageSync('shareInfo', this.shareInfo)
+					if (res.result.data && res.result.data.length > 0) {
+						this.shareInfo = { ...res.result.data[0], imageUrl: res.result.data[0].image_url };
+						uni.setStorageSync('shareInfo', this.shareInfo);
+					}
 				})
 				.catch(err => {
 					uni.showModal({
