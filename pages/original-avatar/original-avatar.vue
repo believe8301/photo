@@ -148,7 +148,7 @@ export default {
 	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/5c68ee76-16d2-4c1a-ab82-032a3c8abd5d.png);
 	.icon-xiangzuo {
 		position: fixed;
-		top: 60rpx;
+		top: 6vh;
 		left: 30rpx;
 		color: #ffffff;
 		font-size: 40rpx;
