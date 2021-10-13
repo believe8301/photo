@@ -88,6 +88,7 @@ export default {
 		 */
 		getShareInfo() {
 			uni.showLoading({
+				title: '加载中',
 				mask: true
 			});
 			uniCloud
@@ -116,6 +117,7 @@ export default {
 		 */
 		getCategoriesList() {
 			uni.showLoading({
+				title: '加载中',
 				mask: true
 			});
 			uniCloud
@@ -251,7 +253,8 @@ export default {
 			}
 			try {
 				uni.showLoading({
-					title: '加载中'
+					title: '加载中',
+					mask: true
 				});
 				_app.log('准备生成:' + new Date());
 				const d = await getSharePoster({
@@ -387,8 +390,10 @@ export default {
 						userInfo: result.userInfo
 					};
 					let info = data.userInfo.avatarUrl;
-					_this.avatarImage = info.substring(0, info.lastIndexOf('/') + 1) + '0';
-					uni.setStorageSync('avatar_image', _this.avatarImage);
+					if (type === 'createImages') {
+						_this.avatarImage = info.substring(0, info.lastIndexOf('/') + 1) + '0';
+						uni.setStorageSync('avatar_image', _this.avatarImage);
+					}
 					_this.postUserInfo(result.userInfo.nickName, type);
 				},
 				fail(fall) {}
@@ -403,7 +408,8 @@ export default {
 			this.code = await this.getWeixinCode();
 			if (type === 'userLogin') {
 				uni.showLoading({
-					mask: false
+					title: '加载中',
+					mask: true
 				});
 			}
 			uniCloud

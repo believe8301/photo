@@ -1,5 +1,6 @@
 <template>
 	<view class="content">
+		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
 		<view class="image-div">
 			<view class="image-unit" v-for="(item, index) in imageList" :key="item._id">
 				<image :src="item.image_url" class="image-card"></image>
@@ -29,11 +30,17 @@ export default {
 		this.getUserImagesByOpenId();
 	},
 	methods: {
+		navBack() {
+			uni.navigateBack({
+				delta:1
+			})
+		},
 		/**
 		 * 获取头像
 		 */
 		getUserImagesByOpenId() {
 			uni.showLoading({
+				title: '加载中',
 				mask: true
 			});
 			let { _id: useId } = uni.getStorageSync('user_info');
@@ -43,7 +50,7 @@ export default {
 					data: { type: 'getUserImagesByOpenId', useId }
 				})
 				.then(res => {
-					this.imageList= res.result.data;
+					this.imageList = res.result.data;
 				})
 				.catch(err => {
 					uni.showModal({
@@ -139,6 +146,14 @@ export default {
 	right: 0;
 	background-size: 100% 100%;
 	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/5c68ee76-16d2-4c1a-ab82-032a3c8abd5d.png);
+	.icon-xiangzuo {
+		position: fixed;
+		top: 60rpx;
+		left: 30rpx;
+		color: #ffffff;
+		font-size: 40rpx;
+		font-weight: bold;
+	}
 	.image-div {
 		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/d8596aff-d3ec-4ce8-ae9e-78774efbd1a8.png);
 		height: 88vh;

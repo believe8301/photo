@@ -1,11 +1,10 @@
 <script>
 	export default {
 		onLaunch: function() {
-			uni.removeStorageSync('avatar_image')
-			console.log('App Launch')
 		},
 		onShow: function() {
-			console.log('App Show')
+			uni.removeStorageSync('avatar_image');
+			uni.removeStorageSync('user_info');
 		},
 		onHide: function() {
 		}

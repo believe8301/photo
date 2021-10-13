@@ -1,5 +1,6 @@
 <template>
 	<view class="content">
+		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
 		<view class="image-div">
 			<view class="icon-xiazai iconfont"></view>
 			<view class="tip-div">恭喜你，头像已保存到相册</view>
@@ -31,6 +32,11 @@ export default {
 		return this.shareInfo;
 	},
 	methods: {
+		navBack() {
+			uni.navigateBack({
+				delta:1
+			})
+		},
 		/**
 		 * 跳到首页
 		 */
@@ -53,6 +59,14 @@ export default {
 	right: 0;
 	background-size: 100% 100%;
 	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/618f991c-21c7-43b1-8e57-d9c8f64c734c.png);
+	.icon-xiangzuo {
+		position: fixed;
+		top: 60rpx;
+		left: 30rpx;
+		color: #ffa462;
+		font-size: 40rpx;
+		font-weight: bold;
+	}
 	.image-div {
 		display: flex;
 		align-items: center;
