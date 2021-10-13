@@ -11,8 +11,8 @@
             "path" : "pages/original-avatar/original-avatar",
             "style" :                                                                                    
             {
-                "navigationBarTitleText": "头像"
-                // "navigationStyle": "custom"
+                "navigationBarTitleText": "头像",
+                "navigationStyle": "custom"
             }
             
         }

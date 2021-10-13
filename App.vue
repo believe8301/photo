@@ -1,6 +1,7 @@
 <script>
 	export default {
 		onLaunch: function() {
+			uni.removeStorageSync('avatar_image')
 			console.log('App Launch')
 		},
 		onShow: function() {

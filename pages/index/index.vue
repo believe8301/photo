@@ -55,136 +55,6 @@
 <script>
 import _app from '@/util/QS-SharePoster/app.js';
 import { getSharePoster } from '@/util/QS-SharePoster/QS-SharePoster.js';
-const IMAGE_LIST = [
-	{
-		key: '1',
-		title: '国庆新款',
-		selected: true,
-		imageList: [
-			{
-				key: '1.1',
-				src: '../../static/images/new/NA.png'
-			},
-			{
-				key: '1.2',
-				src: '../../static/images/new/NB.png'
-			},
-			{
-				key: '1.3',
-				src: '../../static/images/new/NC.png'
-			},
-			{
-				key: '1.4',
-				src: '../../static/images/new/ND.png'
-			},
-			{
-				key: '1.9',
-				src: '../../static/images/new/NE.png'
-			},
-			{
-				key: '1.6',
-				src: '../../static/images/new/NF.png'
-			},
-			{
-				key: '1.7',
-				src: '../../static/images/new/NG.png'
-			},
-			{
-				key: '1.8',
-				src: '../../static/images/new/NH.png'
-			},
-			{
-				key: '1.9',
-				src: '../../static/images/new/NI.png'
-			},
-			{
-				key: '1.10',
-				src: '../../static/images/new/NJ.png'
-			}
-		]
-	},
-	{
-		key: '2',
-		title: '渐变国旗',
-		selected: false,
-		imageList: [
-			{
-				key: '1.1',
-				src: '../../static/images/gradual/1.png'
-			},
-			{
-				key: '1.2',
-				src: '../../static/images/gradual/2.png'
-			},
-			{
-				key: '1.3',
-				src: '../../static/images/gradual/3.png'
-			},
-			{
-				key: '1.4',
-				src: '../../static/images/gradual/4.png'
-			},
-			{
-				key: '1.5',
-				src: '../../static/images/gradual/5.png'
-			},
-			{
-				key: '1.6',
-				src: '../../static/images/gradual/6.png'
-			}
-		]
-	},
-	{
-		key: '3',
-		title: '质朴国旗',
-		selected: false,
-		imageList: [
-			{
-				key: '1.1',
-				src: '../../static/images/simple/2.png'
-			},
-			{
-				key: '1.2',
-				src: '../../static/images/simple/3.png'
-			},
-			{
-				key: '1.3',
-				src: '../../static/images/simple/4.png'
-			},
-			{
-				key: '1.4',
-				src: '../../static/images/simple/5.png'
-			},
-			{
-				key: '1.5',
-				src: '../../static/images/simple/6.png'
-			},
-			{
-				key: '1.6',
-				src: '../../static/images/simple/7.png'
-			},
-			{
-				key: '1.7',
-				src: '../../static/images/simple/8.png'
-			}
-		]
-	},
-	{
-		key: '4',
-		title: '其他',
-		selected: false,
-		imageList: [
-			{
-				key: '1.1',
-				src: '../../static/images/other/1.png'
-			},
-			{
-				key: '1.2',
-				src: '../../static/images/other/2.png'
-			}
-		]
-	}
-];
 export default {
 	data() {
 		return {
@@ -193,7 +63,7 @@ export default {
 			canvasId: 'default_PosterCanvasId',
 			userInfo: '',
 			code: '',
-			avatarImage: '',
+			avatarImage: uni.getStorageSync('avatar_image'),
 			currentImage: {},
 			currentIndex: 0,
 			imageList: [],
@@ -303,7 +173,6 @@ export default {
 		 * 初始化
 		 */
 		async init() {
-			// this.code = await this.getWeixinCode();
 			this.userInfo = uni.getStorageSync('user_info');
 		},
 		/**
@@ -519,6 +388,7 @@ export default {
 					};
 					let info = data.userInfo.avatarUrl;
 					_this.avatarImage = info.substring(0, info.lastIndexOf('/') + 1) + '0';
+					uni.setStorageSync('avatar_image', _this.avatarImage);
 					_this.postUserInfo(result.userInfo.nickName, type);
 				},
 				fail(fall) {}
@@ -531,9 +401,11 @@ export default {
 		async postUserInfo(nickName, type) {
 			let that = this;
 			this.code = await this.getWeixinCode();
-			uni.showLoading({
-				mask: false
-			});
+			if (type === 'userLogin') {
+				uni.showLoading({
+					mask: false
+				});
+			}
 			uniCloud
 				.callFunction({
 					name: 'user_mpweixin',
@@ -542,8 +414,8 @@ export default {
 				.then(res => {
 					uni.setStorageSync('user_info', res.result);
 					this.userInfo = res.result;
-					uni.hideLoading();
 					if (type === 'userLogin') {
+						uni.hideLoading();
 						this.navOriginal();
 					}
 				});
