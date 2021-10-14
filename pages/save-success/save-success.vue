@@ -7,7 +7,7 @@
 			<image :src="currentImage" class="image-card" mode="widthFix"></image>
 		</view>
 		<view class="btn-card">
-			<button open-type="share" class="primary-btn">发给朋友</button>
+			<button open-type="share" class="primary-btn" @click="shareMPweixin">发给朋友</button>
 			<button class="action-btn" @click="navIndex()">再来一张</button>
 		</view>
 	</view>
@@ -18,12 +18,18 @@ export default {
 	data() {
 		return {
 			currentImage: '',
+			avatarImage: uni.getStorageSync('avatar_image'),
 			shareInfo: uni.getStorageSync('shareInfo')
 		};
 	},
 	onLoad() {
 		this.currentImage = uni.getStorageSync('currentImage');
 		uni.removeStorageSync('currentImage');
+	},
+	onShow() {
+		if (this.avatarImage) {
+			uni.setStorageSync('avatar_image',this.avatarImage)
+		}
 	},
 	onShareAppMessage: function() {
 		return this.shareInfo;
@@ -32,6 +38,12 @@ export default {
 		return this.shareInfo;
 	},
 	methods: {
+		shareMPweixin() {
+			this.avatarImage = uni.getStorageSync('avatar_image');
+		},
+		/**
+		 * 返回上一页
+		 */
 		navBack() {
 			uni.navigateBack({
 				delta:1
