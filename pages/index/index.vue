@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<image src="../../static/background.jpg" class="all-back"></image>
+		<image src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg" class="all-back"></image>
 		<view class="top-content">
 			<view class="top-title">
 				<view class="title-unit" :class="{ 'title-select': item.selected }" v-for="(item, index) in categoriesList" :key="item._id" @click="switchCategory(item)">
@@ -21,7 +21,9 @@
 				<!--  -->
 				<view class="avatar-div " id="avatar-container">
 					<image class="img" id="avatar-img" :src="avatarImage"></image>
-					<view class="empty-view " v-if="!avatarImage"><image class="empty" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg"></image></view>
+					<view class="empty-view " v-if="!avatarImage">
+						<image class="empty" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg"></image>
+					</view>
 					<image class="avatar-default " :src="currentImage.image_url" v-if="currentImage && currentImage.image_url"></image>
 				</view>
 
@@ -144,7 +146,7 @@ export default {
 		 * @param {Object} id
 		 * 获取头像
 		 */
-		getImagesList(id) {
+		getImagesList(id, num) {
 			uni.showLoading({
 				mask: true
 			});
@@ -156,7 +158,11 @@ export default {
 				.then(res => {
 					this.imageList = res.result.data;
 					if (this.imageList && this.imageList.length > 0) {
-						this.currentImage = this.imageList[0];
+						if (num < 0) {
+							this.currentImage = this.imageList[this.imageList.length - 1];
+						} else {
+							this.currentImage = this.imageList[0];
+						}
 					}
 				})
 				.catch(err => {
@@ -179,13 +185,13 @@ export default {
 		 * @param {Object} item
 		 * 切换分类
 		 */
-		switchCategory(item) {
+		switchCategory(item, num) {
 			let info = this.categoriesList.filter(el => el.selected);
 			if (info && info.length > 0) {
 				info[0].selected = false;
 			}
 			this.$set(item, 'selected', true);
-			this.getImagesList(item._id);
+			this.getImagesList(item._id, num);
 		},
 		/**
 		 * @param {Object} num
@@ -199,8 +205,8 @@ export default {
 			} else {
 				let currentType = this.categoriesList.findIndex(data => data.selected);
 				currentType += num;
-				if (currentType >= 0 && currentType < this.imageList.length) {
-					this.switchCategory(this.categoriesList[currentType]);
+				if (this.categoriesList[currentType] && this.categoriesList[currentType]._id) {
+					this.switchCategory(this.categoriesList[currentType], num);
 				}
 			}
 		},
@@ -218,8 +224,7 @@ export default {
 		showSwitch(val) {
 			let currentType = this.categoriesList.findIndex(data => data.selected);
 			let currentIndex = this.imageList.findIndex(el => el._id === this.currentImage._id);
-			let res =
-				(val < 0 && currentType <= 0 && currentIndex <= 0) || (val > 0 && currentType >= this.categoriesList.length - 1 && currentIndex >= this.categoriesList.length - 1);
+			let res = (val < 0 && currentType <= 0 && currentIndex <= 0) || (val > 0 && currentType >= this.categoriesList.length - 1 && currentIndex >= this.imageList.length - 1);
 			return !res;
 		},
 		/**
