@@ -1,8 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["goods_sn", "name", "remain_count", "month_sell_count", "total_sell_count", "comment_count", "is_real",
-		"is_on_sale", "is_alone_sale", "is_best", "is_new", "is_hot"
-	],
+	"required": ["image_url", "category_id"],
 	"permission": {
 		"read": true,
 		"create": true,
@@ -20,11 +18,11 @@
 				"collection": "categories",
 				"field": "name as text,_id as value"
 			},
-			"foreignKey":"categories._id",
+			"foreignKey": "categories._id",
 			"componentForEdit": {
-				"name":"uni-data-picker",
+				"name": "uni-data-picker",
 				"props": {
-					"multiple":false
+					"multiple": false
 				}
 			}
 		},
@@ -39,13 +37,13 @@
 			"bsonType": "int",
 			"title": "月下载次数",
 			"description": "月下载次数",
-			"defaultValue":0
+			"defaultValue": 0
 		},
 		"total_sell_count": {
 			"bsonType": "int",
 			"title": "总下载次数",
 			"description": "总下载次数",
-			"defaultValue":0
+			"defaultValue": 0
 		},
 		"state": {
 			"bsonType": "bool",
@@ -72,6 +70,11 @@
 				"text": "否",
 				"value": false
 			}]
+		},
+		"sort": {
+			"bsonType": "int",
+			"description": "排序，越大越靠后",
+			"title": "排序"
 		},
 		"add_date": {
 			"bsonType": "timestamp",

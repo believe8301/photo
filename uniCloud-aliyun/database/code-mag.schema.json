@@ -1,26 +1,45 @@
 {
 	"bsonType": "object",
-	"required": ["name"],
+	"required": ["code", "type", "create_date", "update_date"],
 	"permission": {
-		"read": true,
-		"create": true,
-		"update": true,
-		"delete": true
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
 	},
 	"properties": {
 		"_id": {
-			"description": "存储文档 ID（文章 ID），系统自动生成"
+			"description": "ID，系统自动生成"
 		},
-		"name": {
-			"bsonType": "string",
-			"description": "名称",
-			"title": "名称",
-			"trim": "both"
+		"type": {
+			"title": "类型",
+			"description": "类型",
+			"bsonType": "string"
 		},
-		"sort": {
-			"bsonType": "int",
-			"description": "排序，越大越靠后",
-			"title": "排序"
+		"code": {
+			"title": "标识",
+			"description": "唯一标识",
+			"bsonType": "string"
+		},
+		"title": {
+			"title": "标题",
+			"description": "标题",
+			"bsonType": "string"
+		},
+		"desc": {
+			"title": "描述",
+			"description": "描述",
+			"bsonType": "string"
+		},
+		"image_url": {
+			"title": "图片",
+			"description": "图片",
+			"bsonType": "string"
+		},
+		"path": {
+			"title": "路由",
+			"description": "路由",
+			"bsonType": "string"
 		},
 		"state": {
 			"bsonType": "bool",
@@ -57,9 +76,9 @@
 			}
 		},
 		"update_date": {
-			"bsonType": "timestamp",
 			"title": "更新时间",
-			"description": "修改时间",
+			"description": "更新时间",
+			"bsonType": "timestamp",
 			"defaultValue": {
 				"$env": "now"
 			}
