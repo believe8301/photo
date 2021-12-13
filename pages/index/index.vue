@@ -1,7 +1,8 @@
 <template>
-	<view class="content">
+	<view class="content" @click="touchAvatarBg(false)">
 		<image src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg" class="all-back"></image>
-		<view class="top-content">
+
+		<view class="top-content" @click.stop>
 			<view class="top-title">
 				<view class="title-unit" :class="{ 'title-select': item.selected }" v-for="(item, index) in categoriesList" :key="item._id" @click="switchCategory(item)">
 					{{ item.name }}
@@ -18,11 +19,8 @@
 
 		<view class="image-card">
 			<view class="photo-main-view">
-				<view class="avatar-div " id="avatar-container" @touchstart="touchStart" @touchend="touchEnd" @touchmove="touchMove">
-					<image class="img" id="avatar-img" :src="avatarImage || defaultImage" @touchstart="touchAvatarBg"></image>
-					<!-- <view class="empty-view " v-if="!avatarImage" @click.native="touchAvatarBg" @touchstart="touchAvatarBg">
-						<image class="empty" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg"></image>
-					</view> -->
+				<view class="avatar-div " id="avatar-container" @click.stop @touchstart="touchStart" @touchend="touchEnd" @touchmove="touchMove">
+					<image class="img" id="avatar-img" :src="avatarImage || defaultImage"></image>
 					<image
 						class="avatar-default"
 						:class="{ 'avatar-border': showBorder }"
@@ -34,37 +32,30 @@
 						id="mask-img"
 						:src="currentImage.image_url"
 						v-if="currentImage && currentImage.image_url"
+						@click="touchAvatarBg(true)"
 					></image>
-					<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-show="showBorder">
+					<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-if="showBorder">
 						<image class="drag-img" id="drag-img" src="/static/images/drag.svg"></image>
 					</view>
 				</view>
 
 				<view class="ctlbtn">
 					<view class="icon-div btn-margin">
-						<view class="icon-zuo iconfont" v-if="showSwitch(-1)" @click="switchAvatar(-1)"></view>
-						<view class="icon-you iconfont" v-if="showSwitch(1)" @click="switchAvatar(1)"></view>
+						<view class="icon-zuo iconfont" v-if="showSwitch(-1)" @click.stop="switchAvatar(-1)"></view>
+						<view class="icon-you iconfont" v-if="showSwitch(1)" @click.stop="switchAvatar(1)"></view>
 					</view>
-					<button v-if="userInfo" class="action-btn btn-margin" @click="getUserProfile('createImages')">获取头像</button>
-					<button class="action-btn btn-margin" v-else open-type="getUserInfo" @click="getUserProfile('createImages')">获取头像</button>
-					<button class="action-btn btn-primary" @click="shareFc()">保存头像</button>
+					<button v-if="userInfo" class="action-btn btn-margin" @click.stop="getUserProfile('createImages')">获取头像</button>
+					<button class="action-btn btn-margin" v-else open-type="getUserInfo" @click.stop="getUserProfile('createImages')">获取头像</button>
+					<button class="action-btn btn-primary" @click.stop="shareFc()">保存头像</button>
 				</view>
 			</view>
 		</view>
 		<view class="btn-card">
-			<button v-if="userInfo" class="primary-btn" @click="navOriginal()">原头像</button>
-			<button class="primary-btn" v-else open-type="getUserInfo" @click="getUserProfile('userLogin')">原头像</button>
-			<button open-type="share" class="share-btn">发给朋友</button>
+			<button v-if="userInfo" class="primary-btn" @click.stop="navOriginal()">原头像</button>
+			<button class="primary-btn" v-else open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">原头像</button>
+			<button open-type="share" class="share-btn" @click.stop>发给朋友</button>
 		</view>
-		<image :src="posterImage" style="width: 50px;height: 50px;"></image>
-		<view class="hideCanvasView">
-			<canvas
-				class="hideCanvas"
-				id="default_PosterCanvasId"
-				canvas-id="default_PosterCanvasId"
-				:style="{ width: (poster.width || 10) + 'px', height: (poster.height || 10) + 'px' }"
-			></canvas>
-		</view>
+		<view class="hideCanvas"><canvas class="default_PosterCanvasId" canvas-id="default_PosterCanvasId"></canvas></view>
 	</view>
 </template>
 
@@ -103,8 +94,8 @@ export default {
 			touch_target: '',
 			start_x: 0,
 			start_y: 0,
-			cansWidth: 380, // 宽度 px
-			cansHeight: 380 // 高度 px
+			startInfo: 0,
+			cansBorder: uni.upx2px(1140) // 宽度 px
 		};
 	},
 	onLoad() {
@@ -115,7 +106,9 @@ export default {
 	onReady() {
 		var query = wx.createSelectorQuery();
 		query.select('.avatar-div').boundingClientRect();
-		query.exec(res => {});
+		query.exec(res => {
+			this.startInfo = res[0];
+		});
 	},
 	onShareAppMessage: function() {
 		return this.shareInfo;
@@ -240,6 +233,7 @@ export default {
 		 * 切换图片
 		 */
 		switchAvatar(num) {
+			this.touchAvatarBg(true);
 			let currentIndex = this.imageList.findIndex(el => el._id === this.currentImage._id);
 			if ((num > 0 && currentIndex < this.imageList.length - 1) || (num < 0 && currentIndex > 0)) {
 				currentIndex += num;
@@ -276,19 +270,19 @@ export default {
 			let current_y = e.touches[0].clientY;
 			let moved_x = current_x - this.start_x;
 			let moved_y = current_y - this.start_y;
-			if (this.touch_target == 'mask-img') {
+			if (this.touch_target === 'mask-img') {
 				this.maskCenterX = this.maskCenterX + moved_x;
 				this.maskCenterY = this.maskCenterY + moved_y;
 				this.handleCenterX = this.handleCenterX + moved_x;
 				this.handleCenterY = this.handleCenterY + moved_y;
 			}
-			if (this.touch_target == 'drag-img') {
-				this.handleCenterX = this.handleCenterX + moved_x; // 190
-				this.handleCenterY = this.handleCenterY + moved_y; // 200
-				let diff_x_before = this.handle_center_x - this.mask_center_x; // 190
-				let diff_y_before = this.handle_center_y - this.mask_center_y; // 190
-				let diff_x_after = this.handleCenterX - this.mask_center_x; // 190
-				let diff_y_after = this.handleCenterY - this.mask_center_y; // 200
+			if (this.touch_target === 'drag-img') {
+				this.handleCenterX = this.handleCenterX + moved_x;
+				this.handleCenterY = this.handleCenterY + moved_y;
+				let diff_x_before = this.handle_center_x - this.mask_center_x;
+				let diff_y_before = this.handle_center_y - this.mask_center_y;
+				let diff_x_after = this.handleCenterX - this.mask_center_x;
+				let diff_y_after = this.handleCenterY - this.mask_center_y;
 				let distance_before = Math.sqrt(diff_x_before * diff_x_before + diff_y_before * diff_y_before);
 				let distance_after = Math.sqrt(diff_x_after * diff_x_after + diff_y_after * diff_y_after);
 				let angle_before = (Math.atan2(diff_y_before, diff_x_before) / Math.PI) * 180;
@@ -311,8 +305,8 @@ export default {
 		/**
 		 * 不显示border
 		 */
-		touchAvatarBg() {
-			this.showBorder = false;
+		touchAvatarBg(state) {
+			this.showBorder = state;
 		},
 		/**
 		 * @param {Object} item
@@ -358,52 +352,45 @@ export default {
 				});
 				return;
 			}
-			try {
-				uni.showLoading({
-					title: '加载中',
-					mask: true
-				});
-				let mask_center_x = this.mask_center_x;
-				let mask_center_y = this.mask_center_y;
-				let that = this;
-				var query = wx.createSelectorQuery();
-				query.select('#avatar-img').boundingClientRect();
-				query.exec(res => {
-					mask_center_x = mask_center_x - res[0].left;
-					mask_center_y = mask_center_y - res[0].top;
-					const context = wx.createCanvasContext(that.canvasId);
-					const mask_size = 100 * that.scale;
+			uni.showLoading({
+				title: '加载中',
+				mask: true
+			});
 
-					context.clearRect(0, 0, that.cansWidth, that.cansHeight);
-					console.log(that.avatarImage);
-					context.drawImage(that.avatarImage, 0, 0, that.cansWidth, that.cansHeight);
-					context.translate(mask_center_x, mask_center_y);
-					context.rotate((that.rotate * Math.PI) / 180);
-					context.drawImage(that.currentImage.image_url, -mask_size / 2, -mask_size / 2, mask_size, mask_size);
-					
-					context.draw(false, () => {
-						that.saveCans();
+			const context = uni.createCanvasContext('default_PosterCanvasId', this);
+			const mask_size = this.cansBorder * this.scale;
+			context.clearRect(0, 0, this.cansBorder, this.cansBorder);
+			uni.getImageInfo({
+				src: this.avatarImage,
+				success: response1 => {
+					context.drawImage(response1.path, 0, 0, this.cansBorder, this.cansBorder);
+					uni.getImageInfo({
+						src: this.currentImage.image_url,
+						success: response2 => {
+							context.translate(this.mask_center_x * 3, this.mask_center_y * 3);
+							context.rotate((this.rotate * Math.PI) / 180);
+							context.drawImage(response2.path, -mask_size / 2, -mask_size / 2, mask_size, mask_size);
+							context.draw(false, () => {
+								this.saveCans();
+							});
+						}
 					});
-				});
-			} catch (e) {
-				uni.hideLoading();
-				uni.showToast(JSON.stringify(e));
-			}
+				}
+			});
 		},
 		saveCans() {
 			uni.canvasToTempFilePath(
 				{
 					x: 0,
 					y: 0,
-					height: this.cansWidth,
-					width: this.cansHeight,
-					destWidth: this.cansWidth * 3,
-					destHeight: this.cansHeight * 3,
+					height: this.cansBorder,
+					width: this.cansBorder,
+					destWidth: this.cansBorder,
+					destHeight: this.cansBorder,
 					canvasId: this.canvasId,
 					success: res => {
-						uni.hideLoading();
-						this.posterImage =res.tempFilePath 
-						// this.savefile();
+						this.posterImage = res.tempFilePath;
+						this.savefile();
 					},
 					fail(res) {
 						uni.hideLoading();
@@ -461,7 +448,7 @@ export default {
 					_self.saveImageInfo();
 					uni.setStorageSync('currentImage', _self.posterImage);
 				},
-				fail: (e)=> {
+				fail: e => {
 					uni.hideLoading();
 					uni.showToast({
 						title: '保存失败',
@@ -622,6 +609,15 @@ export default {
 	margin-right: 40rpx;
 	position: relative;
 	width: 380rpx;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-box-pack: center;
+	-webkit-box-align: center;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	z-index: 1;
 	.img {
 		background-color: #fff;
 		border-radius: 48rpx;
@@ -631,25 +627,26 @@ export default {
 		z-index: 0;
 	}
 	.avatar-default {
+		box-sizing: content-box;
 		border-radius: 48rpx;
 		height: 100%;
-		left: 0;
+		width: 100%;
+		margin: 6rpx;
 		position: absolute;
 		top: 0;
-		width: 100%;
+		left: 0;
 		z-index: 10;
 	}
 	.avatar-border {
-		box-sizing: border-box;
+		margin: 0;
 		border: 6rpx dashed #ffffff;
 	}
 	.drag-div {
 		position: absolute;
-		box-sizing: border-box;
 		top: 360rpx;
 		right: 360rpx;
-		width: 60rpx;
-		height: 60rpx;
+		width: 50rpx;
+		height: 50rpx;
 		background-color: #ffffff;
 		border-radius: 50%;
 		padding: 10rpx;
@@ -662,25 +659,6 @@ export default {
 			height: 100%;
 		}
 	}
-}
-
-.avatar-div,
-.empty-view {
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-box-pack: center;
-	-webkit-box-align: center;
-	align-items: center;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	z-index: 1;
-}
-
-.empty {
-	height: 100px;
-	margin-bottom: 24px;
-	width: 100px;
 }
 
 .container {
@@ -761,14 +739,14 @@ export default {
 	}
 }
 
-.hideCanvasView {
-	position: relative;
-}
-
 .hideCanvas {
 	position: fixed;
 	top: -99999upx;
 	left: -99999upx;
 	z-index: -99999;
+	.default_PosterCanvasId {
+		width: 1140rpx;
+		height: 1140rpx;
+	}
 }
 </style>
