@@ -18,13 +18,26 @@
 
 		<view class="image-card">
 			<view class="photo-main-view">
-				<!--  -->
-				<view class="avatar-div " id="avatar-container">
-					<image class="img" id="avatar-img" :src="avatarImage"></image>
-					<view class="empty-view " v-if="!avatarImage">
+				<view class="avatar-div " id="avatar-container" @touchstart="touchStart" @touchend="touchEnd" @touchmove="touchMove">
+					<image class="img" id="avatar-img" :src="avatarImage || defaultImage" @touchstart="touchAvatarBg"></image>
+					<!-- <view class="empty-view " v-if="!avatarImage" @click.native="touchAvatarBg" @touchstart="touchAvatarBg">
 						<image class="empty" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg"></image>
+					</view> -->
+					<image
+						class="avatar-default"
+						:class="{ 'avatar-border': showBorder }"
+						:style="{
+							top: maskCenterY - maskSize / 2 - 2 + 'px',
+							left: maskCenterX - maskSize / 2 - 2 + 'px',
+							transform: 'rotate(' + rotate + 'deg)' + 'scale(' + scale + ')'
+						}"
+						id="mask-img"
+						:src="currentImage.image_url"
+						v-if="currentImage && currentImage.image_url"
+					></image>
+					<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-show="showBorder">
+						<image class="drag-img" id="drag-img" src="/static/images/drag.svg"></image>
 					</view>
-					<image class="avatar-default " :src="currentImage.image_url" v-if="currentImage && currentImage.image_url"></image>
 				</view>
 
 				<view class="ctlbtn">
@@ -43,6 +56,7 @@
 			<button class="primary-btn" v-else open-type="getUserInfo" @click="getUserProfile('userLogin')">原头像</button>
 			<button open-type="share" class="share-btn">发给朋友</button>
 		</view>
+		<image :src="posterImage" style="width: 50px;height: 50px;"></image>
 		<view class="hideCanvasView">
 			<canvas
 				class="hideCanvas"
@@ -66,17 +80,42 @@ export default {
 			userInfo: '',
 			code: '',
 			avatarImage: uni.getStorageSync('avatar_image'),
+			defaultImage: 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg',
 			currentImage: {},
 			currentIndex: 0,
 			imageList: [],
 			categoriesList: [],
-			shareInfo: {}
+			shareInfo: {},
+			showBorder: true, // 默认是否显示边框
+			maskCenterX: uni.upx2px(380) / 2,
+			maskCenterY: uni.upx2px(380) / 2,
+			handleCenterX: uni.upx2px(360),
+			handleCenterY: uni.upx2px(360),
+			maskSize: uni.upx2px(380),
+			scale: 1,
+			rotate: 0,
+			mask_center_x: uni.upx2px(380) / 2,
+			mask_center_y: uni.upx2px(380) / 2,
+			handle_center_x: uni.upx2px(360),
+			handle_center_y: uni.upx2px(360),
+			scaleCurrent: 1,
+			rotateCurrent: 0,
+			touch_target: '',
+			start_x: 0,
+			start_y: 0,
+			cansWidth: 380, // 宽度 px
+			cansHeight: 380 // 高度 px
 		};
 	},
 	onLoad() {
 		this.init();
 		this.getCategoriesList();
 		this.getShareInfo();
+	},
+	onReady() {
+		var query = wx.createSelectorQuery();
+		query.select('.avatar-div').boundingClientRect();
+		query.exec(res => {});
 	},
 	onShareAppMessage: function() {
 		return this.shareInfo;
@@ -214,6 +253,68 @@ export default {
 			}
 		},
 		/**
+		 * @param {Object} e
+		 * 设置挂件位置
+		 */
+		touchStart(e) {
+			if (e.target.id == 'mask-img') {
+				this.touch_target = 'mask-img';
+				this.showBorder = true;
+			} else if (e.target.id == 'drag-img') {
+				this.touch_target = 'drag-img';
+			} else {
+				this.touch_target = '';
+			}
+
+			if (this.touch_target != '') {
+				this.start_x = e.touches[0].clientX;
+				this.start_y = e.touches[0].clientY;
+			}
+		},
+		touchMove(e) {
+			let current_x = e.touches[0].clientX;
+			let current_y = e.touches[0].clientY;
+			let moved_x = current_x - this.start_x;
+			let moved_y = current_y - this.start_y;
+			if (this.touch_target == 'mask-img') {
+				this.maskCenterX = this.maskCenterX + moved_x;
+				this.maskCenterY = this.maskCenterY + moved_y;
+				this.handleCenterX = this.handleCenterX + moved_x;
+				this.handleCenterY = this.handleCenterY + moved_y;
+			}
+			if (this.touch_target == 'drag-img') {
+				this.handleCenterX = this.handleCenterX + moved_x; // 190
+				this.handleCenterY = this.handleCenterY + moved_y; // 200
+				let diff_x_before = this.handle_center_x - this.mask_center_x; // 190
+				let diff_y_before = this.handle_center_y - this.mask_center_y; // 190
+				let diff_x_after = this.handleCenterX - this.mask_center_x; // 190
+				let diff_y_after = this.handleCenterY - this.mask_center_y; // 200
+				let distance_before = Math.sqrt(diff_x_before * diff_x_before + diff_y_before * diff_y_before);
+				let distance_after = Math.sqrt(diff_x_after * diff_x_after + diff_y_after * diff_y_after);
+				let angle_before = (Math.atan2(diff_y_before, diff_x_before) / Math.PI) * 180;
+				let angle_after = (Math.atan2(diff_y_after, diff_x_after) / Math.PI) * 180;
+				this.scale = (distance_after / distance_before) * this.scaleCurrent;
+				this.rotate = angle_after - angle_before + this.rotateCurrent;
+			}
+			this.start_x = current_x;
+			this.start_y = current_y;
+		},
+		touchEnd(e) {
+			this.mask_center_x = this.maskCenterX;
+			this.mask_center_y = this.maskCenterY;
+			this.handle_center_x = this.handleCenterX;
+			this.handle_center_y = this.handleCenterY;
+			this.touch_target = '';
+			this.scaleCurrent = this.scale;
+			this.rotateCurrent = this.rotate;
+		},
+		/**
+		 * 不显示border
+		 */
+		touchAvatarBg() {
+			this.showBorder = false;
+		},
+		/**
 		 * @param {Object} item
 		 * 图片点击事件
 		 */
@@ -262,48 +363,54 @@ export default {
 					title: '加载中',
 					mask: true
 				});
-				_app.log('准备生成:' + new Date());
-				const d = await getSharePoster({
-					_this: this, //若在组件中使用 必传
-					type: 'testShareType',
-					formData: {
-						//访问接口获取背景图携带自定义数据
-					},
-					backgroundImage: this.avatarImage,
-					posterCanvasId: this.canvasId, //canvasId
-					delayTimeScale: 20, //延时系数
-					drawArray: ({ bgObj, type, bgScale }) => {
-						//可直接return数组，也可以return一个promise对象, 但最终resolve一个数组, 这样就可以方便实现后台可控绘制海报
-						return new Promise((rs, rj) => {
-							rs([
-								{
-									type: 'image',
-									url: this.currentImage.image_url,
-									dx: 0,
-									dy: 0,
-									infoCallBack(imageInfo) {
-										return {
-											dWidth: bgObj.width, // 因为设置了圆形图片 所以要乘以2
-											dHeight: bgObj.height
-										};
-									}
-								}
-							]);
-						});
-					},
-					setCanvasWH: ({ bgObj, type, bgScale }) => {
-						// 为动态设置画布宽高的方法，
-						this.poster = bgObj;
-					}
+				let mask_center_x = this.mask_center_x;
+				let mask_center_y = this.mask_center_y;
+				let that = this;
+				var query = wx.createSelectorQuery();
+				query.select('#avatar-img').boundingClientRect();
+				query.exec(res => {
+					mask_center_x = mask_center_x - res[0].left;
+					mask_center_y = mask_center_y - res[0].top;
+					const context = wx.createCanvasContext(that.canvasId);
+					const mask_size = 100 * that.scale;
+
+					context.clearRect(0, 0, that.cansWidth, that.cansHeight);
+					console.log(that.avatarImage);
+					context.drawImage(that.avatarImage, 0, 0, that.cansWidth, that.cansHeight);
+					context.translate(mask_center_x, mask_center_y);
+					context.rotate((that.rotate * Math.PI) / 180);
+					context.drawImage(that.currentImage.image_url, -mask_size / 2, -mask_size / 2, mask_size, mask_size);
+					
+					context.draw(false, () => {
+						that.saveCans();
+					});
 				});
-				_app.log('海报生成成功, 时间:' + new Date() + '， 临时路径: ' + d.poster.tempFilePath);
-				this.posterImage = d.poster.tempFilePath;
-				this.savefile();
 			} catch (e) {
 				uni.hideLoading();
-				_app.hideLoading();
-				_app.showToast(JSON.stringify(e));
+				uni.showToast(JSON.stringify(e));
 			}
+		},
+		saveCans() {
+			uni.canvasToTempFilePath(
+				{
+					x: 0,
+					y: 0,
+					height: this.cansWidth,
+					width: this.cansHeight,
+					destWidth: this.cansWidth * 3,
+					destHeight: this.cansHeight * 3,
+					canvasId: this.canvasId,
+					success: res => {
+						uni.hideLoading();
+						this.posterImage =res.tempFilePath 
+						// this.savefile();
+					},
+					fail(res) {
+						uni.hideLoading();
+					}
+				},
+				this
+			);
 		},
 		/**
 		 * 保存图片
@@ -354,7 +461,7 @@ export default {
 					_self.saveImageInfo();
 					uni.setStorageSync('currentImage', _self.posterImage);
 				},
-				fail: function() {
+				fail: (e)=> {
 					uni.hideLoading();
 					uni.showToast({
 						title: '保存失败',
@@ -515,6 +622,46 @@ export default {
 	margin-right: 40rpx;
 	position: relative;
 	width: 380rpx;
+	.img {
+		background-color: #fff;
+		border-radius: 48rpx;
+		height: 360rpx;
+		position: absolute;
+		width: 360rpx;
+		z-index: 0;
+	}
+	.avatar-default {
+		border-radius: 48rpx;
+		height: 100%;
+		left: 0;
+		position: absolute;
+		top: 0;
+		width: 100%;
+		z-index: 10;
+	}
+	.avatar-border {
+		box-sizing: border-box;
+		border: 6rpx dashed #ffffff;
+	}
+	.drag-div {
+		position: absolute;
+		box-sizing: border-box;
+		top: 360rpx;
+		right: 360rpx;
+		width: 60rpx;
+		height: 60rpx;
+		background-color: #ffffff;
+		border-radius: 50%;
+		padding: 10rpx;
+		z-index: 9999999;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		.drag-img {
+			width: 100%;
+			height: 100%;
+		}
+	}
 }
 
 .avatar-div,
@@ -534,25 +681,6 @@ export default {
 	height: 100px;
 	margin-bottom: 24px;
 	width: 100px;
-}
-
-.img {
-	background-color: #fff;
-	border-radius: 48rpx;
-	height: 360rpx;
-	position: absolute;
-	width: 360rpx;
-	z-index: 0;
-}
-
-.avatar-default {
-	border-radius: 48rpx;
-	height: 100%;
-	left: 0;
-	position: absolute;
-	top: 0;
-	width: 100%;
-	z-index: 10;
 }
 
 .container {
@@ -601,7 +729,7 @@ export default {
 	color: #fff;
 }
 .btn-card {
-	padding: 30rpx 30rpx;
+	padding: 80rpx 30rpx 30rpx;
 	box-sizing: border-box;
 	width: 750rpx;
 	.primary-btn {
