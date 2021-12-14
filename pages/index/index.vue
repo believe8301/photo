@@ -314,6 +314,29 @@ export default {
 		 */
 		imageClick(item) {
 			this.currentImage = item;
+			this.initImage()
+		},
+		/**
+		 * 还原设置
+		 */
+		initImage() {
+			this.showBorder = true; // 默认是否显示边框
+			this.maskCenterX= uni.upx2px(380) / 2;
+			this.maskCenterY= uni.upx2px(380) / 2;
+			this.handleCenterX= uni.upx2px(360);
+			this.handleCenterY= uni.upx2px(360);
+			this.maskSize= uni.upx2px(380);
+			this.scale= 1;
+			this.rotate= 0;
+			this.mask_center_x= uni.upx2px(380) / 2;
+			this.mask_center_y= uni.upx2px(380) / 2;
+			this.handle_center_x= uni.upx2px(360);
+			this.handle_center_y= uni.upx2px(360);
+			this.scaleCurrent= 1;
+			this.rotateCurrent= 0;
+			this.touch_target= '';
+			this.start_x= 0;
+			this.start_y= 0;
 		},
 		/**
 		 * @param {Object} val
