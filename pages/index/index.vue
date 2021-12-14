@@ -3,11 +3,14 @@
 		<image src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg" class="all-back"></image>
 
 		<view class="top-content" @click.stop>
-			<view class="top-title">
-				<view class="title-unit" :class="{ 'title-select': item.selected }" v-for="(item, index) in categoriesList" :key="item._id" @click="switchCategory(item)">
-					{{ item.name }}
+			<scroll-view scroll-x :show-scrollbar="false">
+				<view class="top-title">
+					<view class="title-unit" :class="{ 'title-select': item.selected }" v-for="(item, index) in categoriesList" :key="item._id" @click="switchCategory(item)">
+						{{ item.name }}
+					</view>
 				</view>
-			</view>
+			</scroll-view>
+
 			<scroll-view scroll-x :show-scrollbar="false" class="scroll-view">
 				<view class="image-div">
 					<view :class="{ 'image-margin': index !== 0 }" v-for="(info, index) in imageList" :key="info._id" @click="imageClick(info)">
@@ -23,7 +26,7 @@
 					<image class="img" id="avatar-img" :src="avatarImage || defaultImage"></image>
 					<image
 						class="avatar-default"
-						:class="{ 'avatar-border': showBorder }"
+						:class="{ 'avatar-border': showBorder && currentImage.drag_state }"
 						:style="{
 							top: maskCenterY - maskSize / 2 - 2 + 'px',
 							left: maskCenterX - maskSize / 2 - 2 + 'px',
@@ -34,7 +37,7 @@
 						v-if="currentImage && currentImage.image_url"
 						@click="touchAvatarBg(true)"
 					></image>
-					<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-if="showBorder">
+					<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-if="showBorder &&currentImage && currentImage.drag_state">
 						<image class="drag-img" id="drag-img" src="/static/images/drag.svg"></image>
 					</view>
 				</view>
@@ -251,6 +254,9 @@ export default {
 		 * 设置挂件位置
 		 */
 		touchStart(e) {
+			if (!(this.currentImage && this.currentImage.drag_state)) {
+				return
+			}
 			if (e.target.id == 'mask-img') {
 				this.touch_target = 'mask-img';
 				this.showBorder = true;
@@ -266,6 +272,9 @@ export default {
 			}
 		},
 		touchMove(e) {
+			if (!(this.currentImage && this.currentImage.drag_state)) {
+				return
+			}
 			let current_x = e.touches[0].clientX;
 			let current_y = e.touches[0].clientY;
 			let moved_x = current_x - this.start_x;
@@ -294,6 +303,9 @@ export default {
 			this.start_y = current_y;
 		},
 		touchEnd(e) {
+			if (!(this.currentImage && this.currentImage.drag_state)) {
+				return
+			}
 			this.mask_center_x = this.maskCenterX;
 			this.mask_center_y = this.maskCenterY;
 			this.handle_center_x = this.handleCenterX;
@@ -581,8 +593,10 @@ export default {
 		.top-title {
 			display: flex;
 			align-items: center;
+			flex-wrap: nowrap;
 			.title-unit {
 				padding: 40rpx 20rpx;
+				white-space: nowrap;
 				font-size: 30rpx;
 			}
 			.title-select {
