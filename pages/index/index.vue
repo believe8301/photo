@@ -23,7 +23,7 @@
 		<view class="image-card">
 			<view class="photo-main-view">
 				<view class="avatar-div " id="avatar-container" @click.stop @touchstart="touchStart" @touchend="touchEnd" @touchmove="touchMove">
-					<image class="img" id="avatar-img" :src="avatarImage || defaultImage"></image>
+					<image class="img" id="avatar-img" :src="avatarImage || defaultImage" @click="touchAvatarBg(false)"></image>
 					<image
 						class="avatar-default"
 						:class="{ 'avatar-border': showBorder && currentImage.drag_state }"
