@@ -248,6 +248,11 @@ export default {
 					this.switchCategory(this.categoriesList[currentType], num);
 				}
 			}
+			this.$nextTick(()=>{
+				if (!(this.currentImage && this.currentImage.drag_state)) {
+					this.initImage()
+				}
+			})
 		},
 		/**
 		 * @param {Object} e
@@ -326,7 +331,9 @@ export default {
 		 */
 		imageClick(item) {
 			this.currentImage = item;
-			this.initImage()
+			if (!(this.currentImage && this.currentImage.drag_state)) {
+				this.initImage()
+			}
 		},
 		/**
 		 * 还原设置
