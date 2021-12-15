@@ -201,6 +201,9 @@ export default {
 						} else {
 							this.currentImage = this.imageList[0];
 						}
+						if (!(this.currentImage && this.currentImage.drag_state)) {
+							this.initImage()
+						}
 					}
 				})
 				.catch(err => {
