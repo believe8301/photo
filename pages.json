@@ -13,7 +13,8 @@
             {
                 "navigationBarTitleText": "头像",
                 "navigationStyle": "custom",
-				"navigationBarTextStyle": "white"
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
             }
             
         }
@@ -23,7 +24,19 @@
             {
                 "navigationBarTitleText": "保存",
                 "navigationStyle": "custom",
-				"navigationBarTextStyle": "white"
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/sortition/sortition",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "新年签",
+                "navigationStyle": "custom",
+				"navigationBarTextStyle": "white",
+                "enablePullDownRefresh": false
             }
             
         }

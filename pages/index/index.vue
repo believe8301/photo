@@ -1,7 +1,49 @@
 <template>
-	<view class="content" @click="touchAvatarBg(false)">
-		<image src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg" class="all-back"></image>
+	<view class="content" @click.native="touchAvatarBg(false)">
+		<!-- <image src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg" class="all-back"></image> -->
 
+		<view class="image-card">
+			<view class="switch-div"><view class="icon-xiangzuo iconfont" v-if="showSwitch(-1)" @click.stop="switchAvatar(-1)"></view></view>
+			<view class="avatar-div " id="avatar-container" @click.stop @touchstart="touchStart" @touchend="touchEnd" @touchmove="touchMove">
+				<image class="img" id="avatar-img" :src="avatarImage || defaultImage" @click="touchAvatarBg(false)"></image>
+				<image
+					class="avatar-default"
+					:class="{ 'avatar-border': showBorder && currentImage.drag_state }"
+					:style="{
+						top: maskCenterY - maskSize / 2 - 2 + 'px',
+						left: maskCenterX - maskSize / 2 - 2 + 'px',
+						transform: 'rotate(' + rotate + 'deg)' + 'scale(' + scale + ')'
+					}"
+					id="mask-img"
+					:src="currentImage.image_url"
+					v-if="currentImage && currentImage.image_url"
+					@click="touchAvatarBg(true)"
+				></image>
+				<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-if="showBorder && currentImage && currentImage.drag_state">
+					<image class="drag-img" id="drag-img" src="/static/images/drag.svg"></image>
+				</view>
+			</view>
+			<view class="switch-div"><view class="icon-xiangzuo iconfont rotate-level" v-if="showSwitch(1)" @click.stop="switchAvatar(1)"></view></view>
+		</view>
+		<view class="btn-card">
+			<view v-if="userInfo" class="btn-right">
+				<button class="primary-btn action-btn" @click.stop="getUserProfile('createImages')">获取头像</button>
+				<button class="primary-btn" @click.stop="navOriginal()">选择图片</button>
+				<button class="primary-btn" @click.stop="navOriginal()">原头像</button>
+			</view>
+			<view v-else class="btn-right">
+				<button class="primary-btn action-btn" open-type="getUserInfo" @click.stop="getUserProfile('createImages')">获取头像</button>
+				<button class="primary-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">选择图片</button>
+				<button class="primary-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">原头像</button>
+			</view>
+			<view class="btn-right">
+				<button open-type="share" class="primary-btn share-btn" @click.stop>分享给好友</button>
+				<view class="save-btn btn-right" @click.stop="shareFc()">
+					<text class="iconfont icon-wancheng"></text>
+					保存
+				</view>
+			</view>
+		</view>
 		<view class="top-content" @click.stop>
 			<scroll-view scroll-x :show-scrollbar="false">
 				<view class="top-title">
@@ -10,7 +52,6 @@
 					</view>
 				</view>
 			</scroll-view>
-
 			<scroll-view scroll-x :show-scrollbar="false" class="scroll-view">
 				<view class="image-div">
 					<view :class="{ 'image-margin': index !== 0 }" v-for="(info, index) in imageList" :key="info._id" @click="imageClick(info)">
@@ -19,44 +60,21 @@
 				</view>
 			</scroll-view>
 		</view>
-
-		<view class="image-card">
-			<view class="photo-main-view">
-				<view class="avatar-div " id="avatar-container" @click.stop @touchstart="touchStart" @touchend="touchEnd" @touchmove="touchMove">
-					<image class="img" id="avatar-img" :src="avatarImage || defaultImage" @click="touchAvatarBg(false)"></image>
-					<image
-						class="avatar-default"
-						:class="{ 'avatar-border': showBorder && currentImage.drag_state }"
-						:style="{
-							top: maskCenterY - maskSize / 2 - 2 + 'px',
-							left: maskCenterX - maskSize / 2 - 2 + 'px',
-							transform: 'rotate(' + rotate + 'deg)' + 'scale(' + scale + ')'
-						}"
-						id="mask-img"
-						:src="currentImage.image_url"
-						v-if="currentImage && currentImage.image_url"
-						@click="touchAvatarBg(true)"
-					></image>
-					<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-if="showBorder &&currentImage && currentImage.drag_state">
-						<image class="drag-img" id="drag-img" src="/static/images/drag.svg"></image>
-					</view>
-				</view>
-
-				<view class="ctlbtn">
-					<view class="icon-div btn-margin">
-						<view class="icon-zuo iconfont" v-if="showSwitch(-1)" @click.stop="switchAvatar(-1)"></view>
-						<view class="icon-you iconfont" v-if="showSwitch(1)" @click.stop="switchAvatar(1)"></view>
-					</view>
-					<button v-if="userInfo" class="action-btn btn-margin" @click.stop="getUserProfile('createImages')">获取头像</button>
-					<button class="action-btn btn-margin" v-else open-type="getUserInfo" @click.stop="getUserProfile('createImages')">获取头像</button>
-					<button class="action-btn btn-primary" @click.stop="shareFc()">保存头像</button>
-				</view>
-			</view>
+		<view v-if="userInfo" class="history-card">
+			<button class="history-btn" @click.stop="navOriginal()">
+				查看原头像
+				<text class="iconfont icon-xiangzuo"></text>
+			</button>
 		</view>
-		<view class="btn-card">
-			<button v-if="userInfo" class="primary-btn" @click.stop="navOriginal()">原头像</button>
-			<button class="primary-btn" v-else open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">原头像</button>
-			<button open-type="share" class="share-btn" @click.stop>发给朋友</button>
+		<view v-else class="history-card">
+			<button class="history-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">
+				查看原头像
+				<text class="iconfont icon-xiangzuo"></text>
+			</button>
+		</view>
+		<view class="ad-div" v-if="adState">
+			<view class="icon-guanbi iconfont" @click.stop="adState = false"></view>
+			<view class="ad-card" v-if="adInfo && adInfo.imageUrl" :style="{ 'background-image': 'url(' + adInfo.imageUrl + ')' }" @click="navSortition()"></view>
 		</view>
 		<view class="hideCanvas"><canvas class="default_PosterCanvasId" canvas-id="default_PosterCanvasId"></canvas></view>
 	</view>
@@ -80,18 +98,20 @@ export default {
 			imageList: [],
 			categoriesList: [],
 			shareInfo: {},
+			adInfo: {},
+			adState: true,
 			showBorder: true, // 默认是否显示边框
-			maskCenterX: uni.upx2px(380) / 2,
-			maskCenterY: uni.upx2px(380) / 2,
-			handleCenterX: uni.upx2px(360),
-			handleCenterY: uni.upx2px(360),
-			maskSize: uni.upx2px(380),
+			maskCenterX: uni.upx2px(590) / 2,
+			maskCenterY: uni.upx2px(590) / 2,
+			handleCenterX: uni.upx2px(560), // 360
+			handleCenterY: uni.upx2px(570), // 360
+			maskSize: uni.upx2px(590),
 			scale: 1,
 			rotate: 0,
-			mask_center_x: uni.upx2px(380) / 2,
-			mask_center_y: uni.upx2px(380) / 2,
-			handle_center_x: uni.upx2px(360),
-			handle_center_y: uni.upx2px(360),
+			mask_center_x: uni.upx2px(590) / 2,
+			mask_center_y: uni.upx2px(590) / 2,
+			handle_center_x: uni.upx2px(560), // 360
+			handle_center_y: uni.upx2px(570), // 360
 			scaleCurrent: 1,
 			rotateCurrent: 0,
 			touch_target: '',
@@ -135,7 +155,8 @@ export default {
 				})
 				.then(res => {
 					if (res.result.data && res.result.data.length > 0) {
-						this.shareInfo = { ...res.result.data[0], imageUrl: res.result.data[0].image_url };
+						this.shareInfo = res.result.data.find(el => el.code === 'mpwx_share');
+						this.adInfo = res.result.data.find(el => el.code === 'index_ad');
 						uni.setStorageSync('shareInfo', this.shareInfo);
 					}
 				})
@@ -202,7 +223,7 @@ export default {
 							this.currentImage = this.imageList[0];
 						}
 						if (!(this.currentImage && this.currentImage.drag_state)) {
-							this.initImage()
+							this.initImage();
 						}
 					}
 				})
@@ -251,11 +272,11 @@ export default {
 					this.switchCategory(this.categoriesList[currentType], num);
 				}
 			}
-			this.$nextTick(()=>{
+			this.$nextTick(() => {
 				if (!(this.currentImage && this.currentImage.drag_state)) {
-					this.initImage()
+					this.initImage();
 				}
-			})
+			});
 		},
 		/**
 		 * @param {Object} e
@@ -263,7 +284,7 @@ export default {
 		 */
 		touchStart(e) {
 			if (!(this.currentImage && this.currentImage.drag_state)) {
-				return
+				return;
 			}
 			if (e.target.id == 'mask-img') {
 				this.touch_target = 'mask-img';
@@ -281,7 +302,7 @@ export default {
 		},
 		touchMove(e) {
 			if (!(this.currentImage && this.currentImage.drag_state)) {
-				return
+				return;
 			}
 			let current_x = e.touches[0].clientX;
 			let current_y = e.touches[0].clientY;
@@ -312,7 +333,7 @@ export default {
 		},
 		touchEnd(e) {
 			if (!(this.currentImage && this.currentImage.drag_state)) {
-				return
+				return;
 			}
 			this.mask_center_x = this.maskCenterX;
 			this.mask_center_y = this.maskCenterY;
@@ -335,7 +356,7 @@ export default {
 		imageClick(item) {
 			this.currentImage = item;
 			if (!(this.currentImage && this.currentImage.drag_state)) {
-				this.initImage()
+				this.initImage();
 			}
 		},
 		/**
@@ -343,22 +364,22 @@ export default {
 		 */
 		initImage() {
 			this.showBorder = true; // 默认是否显示边框
-			this.maskCenterX= uni.upx2px(380) / 2;
-			this.maskCenterY= uni.upx2px(380) / 2;
-			this.handleCenterX= uni.upx2px(360);
-			this.handleCenterY= uni.upx2px(360);
-			this.maskSize= uni.upx2px(380);
-			this.scale= 1;
-			this.rotate= 0;
-			this.mask_center_x= uni.upx2px(380) / 2;
-			this.mask_center_y= uni.upx2px(380) / 2;
-			this.handle_center_x= uni.upx2px(360);
-			this.handle_center_y= uni.upx2px(360);
-			this.scaleCurrent= 1;
-			this.rotateCurrent= 0;
-			this.touch_target= '';
-			this.start_x= 0;
-			this.start_y= 0;
+			this.maskCenterX = uni.upx2px(380) / 2;
+			this.maskCenterY = uni.upx2px(380) / 2;
+			this.handleCenterX = uni.upx2px(360);
+			this.handleCenterY = uni.upx2px(360);
+			this.maskSize = uni.upx2px(380);
+			this.scale = 1;
+			this.rotate = 0;
+			this.mask_center_x = uni.upx2px(380) / 2;
+			this.mask_center_y = uni.upx2px(380) / 2;
+			this.handle_center_x = uni.upx2px(360);
+			this.handle_center_y = uni.upx2px(360);
+			this.scaleCurrent = 1;
+			this.rotateCurrent = 0;
+			this.touch_target = '';
+			this.start_x = 0;
+			this.start_y = 0;
 		},
 		/**
 		 * @param {Object} val
@@ -575,6 +596,11 @@ export default {
 			uni.navigateTo({
 				url: '/pages/original-avatar/original-avatar'
 			});
+		},
+		navSortition() {
+			uni.navigateTo({
+				url: '/pages/sortition/sortition'
+			});
 		}
 	}
 };
@@ -583,20 +609,14 @@ export default {
 <style lang="scss" scoped>
 .content {
 	background-size: 100% 100%;
-	padding-top: 200rpx;
-	.all-back {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		min-height: 100vh;
-		width: 750rpx;
-	}
+	padding: 200rpx 0 0;
+	min-height: 100vh;
+	box-sizing: border-box;
+	background-image: url('https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg');
 	.top-content {
 		width: 610rpx;
 		background-color: #ffffff;
-		margin: 30rpx;
+		margin: 0 30rpx;
 		border-radius: 50rpx;
 		padding: 0 40rpx 30rpx;
 		position: relative;
@@ -638,162 +658,186 @@ export default {
 		justify-content: center;
 		align-items: center;
 		position: relative;
-		.iconfont {
-			color: #f7f8fa;
-			font-size: 80rpx;
+		.switch-div {
+			width: 80rpx;
+			height: 300rpx;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+			.iconfont {
+				font-size: 78rpx;
+				font-weight: bold;
+				background-image: -webkit-linear-gradient(180deg, #f7f8fa, #ff4d42 88.36%);
+				-webkit-text-fill-color: transparent;
+				-webkit-background-clip: text;
+			}
+			.rotate-level {
+				transform: rotateY(180deg);
+			}
+		}
+		.avatar-div {
+			height: 590rpx;
+			position: relative;
+			width: 590rpx;
+			-webkit-box-orient: vertical;
+			-webkit-box-direction: normal;
+			-webkit-box-pack: center;
+			-webkit-box-align: center;
+			align-items: center;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			z-index: 1;
+			.img {
+				background-color: #fff;
+				border-radius: 48rpx;
+				height: 100%;
+				position: absolute;
+				width: 100%;
+				z-index: 0;
+			}
+			.avatar-default {
+				box-sizing: content-box;
+				border-radius: 48rpx;
+				height: 100%;
+				width: 100%;
+				margin: 6rpx;
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 10;
+			}
+			.avatar-border {
+				margin: 0;
+				border: 6rpx dashed #ffffff;
+			}
+			.drag-div {
+				position: absolute;
+				top: 590rpx;
+				right: 590rpx;
+				width: 50rpx;
+				height: 50rpx;
+				background-color: #ffffff;
+				border-radius: 50%;
+				padding: 10rpx;
+				z-index: 9999999;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				.drag-img {
+					width: 100%;
+					height: 100%;
+				}
+			}
+		}
+	}
+	.btn-card {
+		padding: 40rpx 10rpx 30rpx;
+		box-sizing: border-box;
+		width: 750rpx;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		.primary-btn {
+			display: inline-block;
+			margin-right: 10rpx;
+			background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
+			border: 1rpx solid #ff7852;
+			border-radius: 16rpx;
+			box-shadow: 0 12rpx 16rpx -8rpx rgba(255, 88, 35, 0.6);
+			color: #fff;
+			padding: 0 20rpx;
+			font-size: 28rpx;
+			height: 50rpx;
+			line-height: 48rpx;
+		}
+		.action-btn {
+			background: #fff;
+			border: 1rpx solid #efefef;
+			box-shadow: 0 12rpx 16rpx -8rpx rgba(0, 0, 0, 0.1);
+			color: #4d4d4d;
+		}
+		.share-btn {
+			background: linear-gradient(97.71deg, #ffd01e, #ff8917 60%);
+		}
+		.btn-right {
+			display: flex;
+			align-items: center;
+		}
+		.save-btn {
+			color: #ff4d42;
+			font-size: 30rpx;
 			font-weight: bold;
 		}
 	}
-}
-
-.title {
-	font-size: 36rpx;
-	color: #8f8f94;
-}
-
-.avatar-div {
-	height: 380rpx;
-	margin-right: 40rpx;
-	position: relative;
-	width: 380rpx;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-box-pack: center;
-	-webkit-box-align: center;
-	align-items: center;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	z-index: 1;
-	.img {
-		background-color: #fff;
-		border-radius: 48rpx;
-		height: 360rpx;
-		position: absolute;
-		width: 360rpx;
-		z-index: 0;
-	}
-	.avatar-default {
-		box-sizing: content-box;
-		border-radius: 48rpx;
-		height: 100%;
-		width: 100%;
-		margin: 6rpx;
-		position: absolute;
-		top: 0;
-		left: 0;
-		z-index: 10;
-	}
-	.avatar-border {
-		margin: 0;
-		border: 6rpx dashed #ffffff;
-	}
-	.drag-div {
-		position: absolute;
-		top: 360rpx;
-		right: 360rpx;
-		width: 50rpx;
-		height: 50rpx;
-		background-color: #ffffff;
-		border-radius: 50%;
-		padding: 10rpx;
-		z-index: 9999999;
+	.ad-div {
+		position: fixed;
+		top: 300rpx;
+		right: 0;
+		box-sizing: border-box;
+		z-index: 99999;
 		display: flex;
-		justify-content: center;
-		align-items: center;
-		.drag-img {
-			width: 100%;
-			height: 100%;
+		align-items: flex-end;
+		flex-direction: column;
+		.icon-guanbi {
+			font-size: 36rpx;
+			color: #ffffff;
+		}
+		.ad-card {
+			background-size: cover;
+			width: 200rpx;
+			height: 200rpx;
+			animation: d-light 2s linear infinite;
+			font-size: 20rpx;
+			color: #ffffff;
+		}
+	}
+	.history-card {
+		display: flex;
+		justify-content: flex-end;
+		align-items: flex-end;
+		.history-btn {
+			background-color: transparent;
+			border-width: 0;
+			font-size: 32rpx;
+			font-weight: bold;
+			color: #FFFFFF;
+			display: inline-block;
+			margin-left: 0;
+			margin-right: 0;
+		}
+		.history-btn::after {
+			border-left-width: 0;
+			border-right-width: 0;
+			border-top-width: 0;
+			border-bottom-width: 0;
+		}
+	}
+
+	.hideCanvas {
+		position: fixed;
+		top: -99999upx;
+		left: -99999upx;
+		z-index: -99999;
+		.default_PosterCanvasId {
+			width: 1140rpx;
+			height: 1140rpx;
 		}
 	}
 }
-
-.container {
-	background-color: #fbebe1;
-	min-height: 100vh;
-	overflow: hidden;
-}
-.photo-main-view {
-	display: flex;
-	justify-content: space-between;
-	width: 690rpx;
-	margin: 30rpx 30rpx 0;
-}
-.icon-div {
-	position: relative;
-	height: 80rpx;
-	.icon-zuo {
-		position: absolute;
-		left: 0;
+@keyframes d-light {
+	0% {
+		transform: rotate(0deg);
 	}
-	.icon-you {
-		position: absolute;
-		right: 0;
+	25% {
+		transform: rotate(10deg);
 	}
-}
-.action-btn {
-	background: #fff;
-	border: 1rpx solid #efefef;
-	border-radius: 48rpx;
-	box-shadow: 0 12rpx 16rpx -8rpx rgba(0, 0, 0, 0.1);
-	color: #4d4d4d;
-	font-weight: bolder;
-	height: 90rpx;
-	line-height: 90rpx;
-	font-size: 30rpx;
-	padding: 0 60rpx;
-}
-.btn-margin {
-	margin-bottom: 50rpx;
-}
-.btn-primary {
-	background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
-	border: 1rpx solid #ff7852;
-	border-radius: 48rpx;
-	box-shadow: 0 12rpx 16rpx -8rpx rgba(255, 88, 35, 0.6);
-	color: #fff;
-}
-.btn-card {
-	padding: 80rpx 30rpx 30rpx;
-	box-sizing: border-box;
-	width: 750rpx;
-	.primary-btn {
-		width: 330rpx;
-		display: inline-block;
-		margin-right: 30rpx;
-		background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
-		border: 1rpx solid #ff7852;
-		border-radius: 48rpx;
-		box-shadow: 0 12rpx 16rpx -8rpx rgba(255, 88, 35, 0.6);
-		color: #fff;
-		padding: 0;
-		font-size: 30rpx;
-		height: 90rpx;
-		line-height: 90rpx;
+	75% {
+		transform: rotate(-10deg);
 	}
-	.share-btn {
-		width: 330rpx;
-		display: inline-block;
-		background: linear-gradient(97.71deg, #ffd01e, #ff8917 60%);
-		border: 1rpx solid #ff7852;
-		border-radius: 48rpx;
-		box-shadow: 0 12rpx 16rpx -8rpx rgba(255, 88, 35, 0.6);
-		color: #fff;
-		padding: 0;
-		font-size: 30rpx;
-		height: 90rpx;
-		line-height: 90rpx;
-	}
-}
-
-.hideCanvas {
-	position: fixed;
-	top: -99999upx;
-	left: -99999upx;
-	z-index: -99999;
-	.default_PosterCanvasId {
-		width: 1140rpx;
-		height: 1140rpx;
+	10% {
+		transform: rotate(0deg);
 	}
 }
 </style>

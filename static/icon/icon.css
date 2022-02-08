@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id 2846383 */
-  src: url('https://at.alicdn.com/t/font_2846383_hgjmk7g2wh9.ttf?t=1634134512381') format('truetype');;
+  src: url('https://at.alicdn.com/t/font_2846383_j7nik6nkd5.ttf?t=1643360234887') format('truetype');;
 }
 
 .iconfont {
@@ -11,6 +11,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-guanbi:before {
+  content: "\eaf2";
+}
+
+.icon-wancheng:before {
+  content: "\e603";
+}
+
+.icon-xiangzuo:before {
+  content: "\eb15";
+}
 
 .icon-xiazai:before {
   content: "\e608";
@@ -23,7 +34,3 @@
 .icon-zuo:before {
   content: "\e626";
 }
-.icon-xiangzuo:before {
-  content: "\eb15";
-}
-
