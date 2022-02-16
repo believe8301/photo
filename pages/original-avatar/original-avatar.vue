@@ -1,13 +1,14 @@
 <template>
 	<view class="content">
 		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
+		<view class="image-bottom"></view>
+		
 		<view class="image-div">
 			<view class="image-unit" v-for="(item, index) in imageList" :key="item._id">
 				<image :src="item.image_url" class="image-card"></image>
 				<view class="btn-card"><button class="primary-btn" @click="downLoadImage(item.image_url)">保存头像</button></view>
 			</view>
 		</view>
-		<view class="image-bottom"></view>
 	</view>
 </template>
 
@@ -156,7 +157,6 @@ export default {
 	}
 	.image-div {
 		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/d8596aff-d3ec-4ce8-ae9e-78774efbd1a8.png);
-		height: 88vh;
 		padding: 30rpx 30rpx 350rpx;
 		border-radius: 20rpx;
 		width: 690rpx;

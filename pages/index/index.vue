@@ -28,13 +28,13 @@
 		<view class="btn-card">
 			<view v-if="userInfo" class="btn-right">
 				<button class="primary-btn action-btn" @click.stop="getUserProfile('createImages')">获取头像</button>
-				<button class="primary-btn" @click.stop="navOriginal()">选择图片</button>
-				<button class="primary-btn" @click.stop="navOriginal()">原头像</button>
+				<button class="primary-btn" @click.stop="chooseImages()">选择图片</button>
+				<!-- <button class="primary-btn" @click.stop="navOriginal()">原头像</button> -->
 			</view>
 			<view v-else class="btn-right">
 				<button class="primary-btn action-btn" open-type="getUserInfo" @click.stop="getUserProfile('createImages')">获取头像</button>
-				<button class="primary-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">选择图片</button>
-				<button class="primary-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">原头像</button>
+				<button class="primary-btn" open-type="getUserInfo" @click.stop="getUserProfile('selectedImage')">选择图片</button>
+				<!-- <button class="primary-btn" open-type="gsetUserInfo" @click.stop="getUserProfile('userLogin')">原头像</button> -->
 			</view>
 			<view class="btn-right">
 				<button open-type="share" class="primary-btn share-btn" @click.stop>分享给好友</button>
@@ -63,13 +63,17 @@
 		<view v-if="userInfo" class="history-card">
 			<button class="history-btn" @click.stop="navOriginal()">
 				查看原头像
-				<text class="iconfont icon-xiangzuo"></text>
+				<view class="icon-div">
+					<text class="iconfont icon-xiangzuo"></text>
+				</view>
 			</button>
 		</view>
 		<view v-else class="history-card">
 			<button class="history-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">
 				查看原头像
-				<text class="iconfont icon-xiangzuo"></text>
+				<view class="icon-div">
+					<text class="iconfont icon-xiangzuo"></text>
+				</view>
 			</button>
 		</view>
 		<view class="ad-div" v-if="adState">
@@ -456,6 +460,7 @@ export default {
 					canvasId: this.canvasId,
 					success: res => {
 						this.posterImage = res.tempFilePath;
+						console.log(11111,this.posterImage)
 						this.savefile();
 					},
 					fail(res) {
@@ -589,8 +594,23 @@ export default {
 					if (type === 'userLogin') {
 						uni.hideLoading();
 						this.navOriginal();
+					} else {
+						this.chooseImages()
 					}
 				});
+		},
+		/**
+		 * 选择图片
+		 */
+		chooseImages() {
+			uni.chooseImage({
+			    count: 1, //默认9
+			    sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+			    sourceType: ['album', 'camera'], //从相册选择
+			    success:  (res)=>  {
+					this.avatarImage =res.tempFilePaths[0]
+			    }
+			});
 		},
 		navOriginal() {
 			uni.navigateTo({
@@ -733,7 +753,7 @@ export default {
 		}
 	}
 	.btn-card {
-		padding: 40rpx 10rpx 30rpx;
+		padding: 40rpx 30rpx 30rpx;
 		box-sizing: border-box;
 		width: 750rpx;
 		display: flex;
@@ -741,7 +761,7 @@ export default {
 		align-items: center;
 		.primary-btn {
 			display: inline-block;
-			margin-right: 10rpx;
+			margin-right: 20rpx;
 			background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
 			border: 1rpx solid #ff7852;
 			border-radius: 16rpx;
@@ -749,8 +769,8 @@ export default {
 			color: #fff;
 			padding: 0 20rpx;
 			font-size: 28rpx;
-			height: 50rpx;
-			line-height: 48rpx;
+			height: 70rpx;
+			line-height: 68rpx;
 		}
 		.action-btn {
 			background: #fff;
@@ -806,6 +826,10 @@ export default {
 			display: inline-block;
 			margin-left: 0;
 			margin-right: 0;
+			.icon-div {
+				display: inline-block;
+				transform: rotateY(180deg);
+			}
 		}
 		.history-btn::after {
 			border-left-width: 0;
