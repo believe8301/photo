@@ -25,19 +25,21 @@ export default {
 			userInfo: uni.getStorageSync('user_info')
 		};
 	},
-	onShareAppMessage: function() {
-		return this.shareInfo;
-	},
-	onShareTimeline: function() {
-		return this.shareInfo;
-	},
+	// onShareAppMessage: function() {
+	// 	return this.shareInfo;
+	// },
+	// onShareTimeline: function() {
+	// 	return this.shareInfo;
+	// },
 	onLoad() {
 		this.init()
 	},
 	methods: {
 		async init() {
 			this.code = await this.getWeixinCode();
-			
+			if(this.userInfo) {
+				this.getSign('onlyGet')
+			}
 		},
 		/**
 		 * 获取微信code
@@ -93,7 +95,6 @@ export default {
 					data: { code: that.code, nickName, type:'userLogin' }
 				})
 				.then(res => {
-					console.log(res.result)
 					uni.setStorageSync('user_info', res.result);
 					this.userInfo = res.result;
 					this.getSign();
@@ -102,7 +103,7 @@ export default {
 					uni.hideLoading();
 				});
 		},
-		getSign() {
+		getSign(setType) {
 			uni.showLoading({
 				title: '加载中',
 				mask: true
@@ -111,12 +112,13 @@ export default {
 			uniCloud
 				.callFunction({
 					name: 'sign',
-					data: { type: 'drawLots', userId }
+					data: { type: 'drawLots', userId,setType }
 				})
 				.then(res => {
+					if(res.result) {
 					this.signState = true;
 					this.signContent = res.result;
-					console.log(res); 
+					}
 				})
 				.catch(err => {
 					uni.showModal({

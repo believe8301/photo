@@ -127,6 +127,7 @@ export default {
 	},
 	onLoad() {
 		this.init();
+		this.initBg();
 		this.getCategoriesList();
 	},
 	onShow() {
@@ -257,9 +258,10 @@ export default {
 		 */
 		initBg() {
 			if (uni.getStorageSync('background_info') && uni.getStorageSync('background_info').length) {
-				this.shareInfo = res.result.data.find(el => el.code === 'mpwx_share');
-				this.adInfo = res.result.data.find(el => el.code === 'index_ad');
-				this.indexBg = res.result.data.find(el => el.code === 'index_bg');
+				let info = uni.getStorageSync('background_info')
+				this.shareInfo = info.find(el => el.code === 'mpwx_share');
+				this.adInfo = info.find(el => el.code === 'index_ad');
+				this.indexBg = info.find(el => el.code === 'index_bg');
 			} else if (this.bgIndex < 5) {
 				this.bgIndex++
 				setTimeout(()=> {
@@ -611,19 +613,17 @@ export default {
 					mask: true
 				});
 			}
-			uniCloud
-				.callFunction({
-					name: 'user_mpweixin',
-					data: { code: that.code, avatarImage: that.avatarImage, nickName, type }
-				})
-				.then(res => {
+			uniCloud.callFunction({
+				name: 'user_mpweixin',
+				data: { code: that.code, avatarImage: that.avatarImage, nickName, type: type === 'selectedImage'? 'userLogin': type }
+			}).then(res => {
 					uni.setStorageSync('user_info', res.result);
 					this.userInfo = res.result;
 					if (type === 'userLogin') {
 						uni.hideLoading();
 						this.navOriginal();
 					} else if (type === 'selectedImage') {
-						this.chooseImages();
+						this.chooseImages(type);
 					}
 			});
 		},
@@ -636,15 +636,18 @@ export default {
 				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
 				sourceType: ['album', 'camera'], //从相册选择
 				success: res => {
-					this.avatarImage = res.tempFilePaths[0];
-					if(type){
-						console.log(this.code)
-						uniCloud
-							.callFunction({
-								name: 'user_mpweixin',
-								data: { code: this.code, avatarImage: this.avatarImage, type }
-							}).then();
-					}
+					let filePath = res.tempFilePaths[0];
+					uniCloud.uploadFile({
+						filePath: filePath,
+						cloudPath: `userChooseImage-${new Date().getTime()}.png`
+					}).then(res => {
+						this.avatarImage = res['fileID'];
+						//获取到上传到云储存的url地址
+						uniCloud.callFunction({
+							name: 'user_mpweixin',
+							data: { userId: this.userInfo._id, avatarImage: this.avatarImage, type }
+						}).then();
+					});
 				}
 			});
 		},

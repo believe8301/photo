@@ -127,6 +127,9 @@ export default {
 							}
 						});
 					}
+				},
+				fail:(res)=> {
+					console.log(res)
 				}
 			});
 		}
