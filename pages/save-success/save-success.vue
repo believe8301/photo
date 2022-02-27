@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" :style="{'background-image': 'url('+indexBg.imageUrl+')'}">
 		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
 		<view class="image-div">
 			<view class="icon-xiazai iconfont"></view>
@@ -7,7 +7,7 @@
 			<image :src="currentImage" class="image-card" mode="widthFix"></image>
 		</view>
 		<view class="btn-card">
-			<button open-type="share" class="primary-btn" @click="shareMPweixin">发给朋友</button>
+			<button open-type="share" class="primary-btn">发给朋友</button>
 			<button class="action-btn" @click="navIndex()">再来一张</button>
 		</view>
 	</view>
@@ -18,6 +18,7 @@ export default {
 	data() {
 		return {
 			currentImage: '',
+			indexBg:  uni.getStorageSync('background_info') ? uni.getStorageSync('background_info').find(el => el.code === 'saveSucess_bg'):{},
 			avatarImage: uni.getStorageSync('avatar_image'),
 			shareInfo: uni.getStorageSync('shareInfo')
 		};
@@ -38,9 +39,6 @@ export default {
 		return this.shareInfo;
 	},
 	methods: {
-		shareMPweixin() {
-			this.avatarImage = uni.getStorageSync('avatar_image');
-		},
 		/**
 		 * 返回上一页
 		 */
@@ -70,7 +68,6 @@ export default {
 	left: 0;
 	right: 0;
 	background-size: 100% 100%;
-	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/618f991c-21c7-43b1-8e57-d9c8f64c734c.png);
 	.icon-xiangzuo {
 		position: fixed;
 		top: 6vh;

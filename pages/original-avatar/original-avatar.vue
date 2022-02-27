@@ -1,8 +1,6 @@
 <template>
-	<view class="content">
+	<view class="content" :style="{'background-image': 'url('+indexBg.imageUrl+')'}">
 		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
-		<view class="image-bottom"></view>
-		
 		<view class="image-div">
 			<view class="image-unit" v-for="(item, index) in imageList" :key="item._id">
 				<image :src="item.image_url" class="image-card"></image>
@@ -17,6 +15,7 @@ export default {
 	data() {
 		return {
 			imageList: [],
+			indexBg:  uni.getStorageSync('background_info')?uni.getStorageSync('background_info').find(el => el.code === 'original_bg'):{},
 			shareInfo: uni.getStorageSync('shareInfo')
 		};
 	},
@@ -157,12 +156,14 @@ export default {
 	}
 	.image-div {
 		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/d8596aff-d3ec-4ce8-ae9e-78774efbd1a8.png);
-		padding: 30rpx 30rpx 350rpx;
+		padding: 30rpx 30rpx 50rpx;
 		border-radius: 20rpx;
 		width: 690rpx;
+		height: 88vh;
 		display: flex;
 		justify-content: space-between;
 		flex-wrap: wrap;
+		box-sizing: border-box;
 		overflow-y: auto;
 		.image-unit {
 			width: 300rpx;
@@ -193,16 +194,6 @@ export default {
 				}
 			}
 		}
-	}
-	.image-bottom {
-		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/4960fc70-f203-463c-8b9d-08594a96d8e1.png);
-		width: 750rpx;
-		height: 350rpx;
-		background-size: 100% 100%;
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
 	}
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-	<view class="content" @click.native="touchAvatarBg(false)">
-		<!-- <image src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/3da3f4b5-271b-48f5-b13f-acb0d362ed91.jpg" class="all-back"></image> -->
+	<view class="content" :style="{'background-image': 'url('+(indexBg.imageUrl||'')+')'}" @click.native="touchAvatarBg(false)">
+		<view class="hideCanvas"><canvas class="default_PosterCanvasId" canvas-id="default_PosterCanvasId"></canvas></view>
 
 		<view class="image-card">
 			<view class="switch-div"><view class="icon-xiangzuo iconfont" v-if="showSwitch(-1)" @click.stop="switchAvatar(-1)"></view></view>
@@ -19,7 +19,11 @@
 					v-if="currentImage && currentImage.image_url"
 					@click="touchAvatarBg(true)"
 				></image>
-				<view class="drag-div" :style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px' }" v-if="showBorder && currentImage && currentImage.drag_state">
+				<view
+					class="drag-div"
+					:style="{ top: handleCenterY - 10 + 'px', left: handleCenterX - 10 + 'px', width: handleWidth + 'rpx', height: handleWidth + 'rpx' }"
+					v-if="showBorder && currentImage && currentImage.drag_state"
+				>
 					<image class="drag-img" id="drag-img" src="/static/images/drag.svg"></image>
 				</view>
 			</view>
@@ -28,13 +32,11 @@
 		<view class="btn-card">
 			<view v-if="userInfo" class="btn-right">
 				<button class="primary-btn action-btn" @click.stop="getUserProfile('createImages')">获取头像</button>
-				<button class="primary-btn" @click.stop="chooseImages()">选择图片</button>
-				<!-- <button class="primary-btn" @click.stop="navOriginal()">原头像</button> -->
+				<button class="primary-btn" @click.stop="chooseImages('selectedImage')">选择图片</button>
 			</view>
 			<view v-else class="btn-right">
 				<button class="primary-btn action-btn" open-type="getUserInfo" @click.stop="getUserProfile('createImages')">获取头像</button>
 				<button class="primary-btn" open-type="getUserInfo" @click.stop="getUserProfile('selectedImage')">选择图片</button>
-				<!-- <button class="primary-btn" open-type="gsetUserInfo" @click.stop="getUserProfile('userLogin')">原头像</button> -->
 			</view>
 			<view class="btn-right">
 				<button open-type="share" class="primary-btn share-btn" @click.stop>分享给好友</button>
@@ -63,24 +65,19 @@
 		<view v-if="userInfo" class="history-card">
 			<button class="history-btn" @click.stop="navOriginal()">
 				查看原头像
-				<view class="icon-div">
-					<text class="iconfont icon-xiangzuo"></text>
-				</view>
+				<view class="icon-div"><text class="iconfont icon-xiangzuo"></text></view>
 			</button>
 		</view>
 		<view v-else class="history-card">
 			<button class="history-btn" open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">
 				查看原头像
-				<view class="icon-div">
-					<text class="iconfont icon-xiangzuo"></text>
-				</view>
+				<view class="icon-div"><text class="iconfont icon-xiangzuo"></text></view>
 			</button>
 		</view>
-		<view class="ad-div" v-if="adState">
+		<view class="ad-div" v-if="adState && adInfo && adInfo.imageUrl">
 			<view class="icon-guanbi iconfont" @click.stop="adState = false"></view>
 			<view class="ad-card" v-if="adInfo && adInfo.imageUrl" :style="{ 'background-image': 'url(' + adInfo.imageUrl + ')' }" @click="navSortition()"></view>
 		</view>
-		<view class="hideCanvas"><canvas class="default_PosterCanvasId" canvas-id="default_PosterCanvasId"></canvas></view>
 	</view>
 </template>
 
@@ -96,6 +93,7 @@ export default {
 			userInfo: '',
 			code: '',
 			avatarImage: uni.getStorageSync('avatar_image'),
+			indexBg:  {},
 			defaultImage: 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg',
 			currentImage: {},
 			currentIndex: 0,
@@ -109,6 +107,7 @@ export default {
 			maskCenterY: uni.upx2px(590) / 2,
 			handleCenterX: uni.upx2px(560), // 360
 			handleCenterY: uni.upx2px(570), // 360
+			handleWidth: 50, // 360
 			maskSize: uni.upx2px(590),
 			scale: 1,
 			rotate: 0,
@@ -122,12 +121,15 @@ export default {
 			start_x: 0,
 			start_y: 0,
 			startInfo: 0,
-			cansBorder: uni.upx2px(1140) // 宽度 px
+			cansBorder: uni.upx2px(1770), // 宽度 px
+			bgIndex: 0
 		};
 	},
 	onLoad() {
 		this.init();
 		this.getCategoriesList();
+	},
+	onShow() {
 		this.getShareInfo();
 	},
 	onReady() {
@@ -161,7 +163,9 @@ export default {
 					if (res.result.data && res.result.data.length > 0) {
 						this.shareInfo = res.result.data.find(el => el.code === 'mpwx_share');
 						this.adInfo = res.result.data.find(el => el.code === 'index_ad');
+						this.indexBg = res.result.data.find(el => el.code === 'index_bg');
 						uni.setStorageSync('shareInfo', this.shareInfo);
+						uni.setStorageSync('background_info', res.result.data);
 					}
 				})
 				.catch(err => {
@@ -245,7 +249,25 @@ export default {
 		 * 初始化
 		 */
 		async init() {
+			this.code = await this.getWeixinCode();
 			this.userInfo = uni.getStorageSync('user_info');
+		},
+		/**
+		 * 初始化
+		 */
+		initBg() {
+			if (uni.getStorageSync('background_info') && uni.getStorageSync('background_info').length) {
+				this.shareInfo = res.result.data.find(el => el.code === 'mpwx_share');
+				this.adInfo = res.result.data.find(el => el.code === 'index_ad');
+				this.indexBg = res.result.data.find(el => el.code === 'index_bg');
+			} else if (this.bgIndex < 5) {
+				this.bgIndex++
+				setTimeout(()=> {
+					this.initBg()
+				},300)
+			} else {
+				this.getShareInfo()
+			}
 		},
 		/**
 		 * @param {Object} item
@@ -331,6 +353,14 @@ export default {
 				let angle_after = (Math.atan2(diff_y_after, diff_x_after) / Math.PI) * 180;
 				this.scale = (distance_after / distance_before) * this.scaleCurrent;
 				this.rotate = angle_after - angle_before + this.rotateCurrent;
+				let width = this.scale * 100;
+				if (width > 50) {
+					this.handleWidth = 50;
+				} else if (width < 10) {
+					this.handleWidth = 10;
+				} else {
+					this.handleWidth = width;
+				}
 			}
 			this.start_x = current_x;
 			this.start_y = current_y;
@@ -368,17 +398,17 @@ export default {
 		 */
 		initImage() {
 			this.showBorder = true; // 默认是否显示边框
-			this.maskCenterX = uni.upx2px(380) / 2;
-			this.maskCenterY = uni.upx2px(380) / 2;
-			this.handleCenterX = uni.upx2px(360);
-			this.handleCenterY = uni.upx2px(360);
-			this.maskSize = uni.upx2px(380);
+			this.maskCenterX = uni.upx2px(590) / 2;
+			this.maskCenterY = uni.upx2px(590) / 2;
+			this.handleCenterX = uni.upx2px(560);
+			this.handleCenterY = uni.upx2px(570);
+			this.maskSize = uni.upx2px(590);
 			this.scale = 1;
 			this.rotate = 0;
-			this.mask_center_x = uni.upx2px(380) / 2;
-			this.mask_center_y = uni.upx2px(380) / 2;
-			this.handle_center_x = uni.upx2px(360);
-			this.handle_center_y = uni.upx2px(360);
+			this.mask_center_x = uni.upx2px(590) / 2;
+			this.mask_center_y = uni.upx2px(590) / 2;
+			this.handle_center_x = uni.upx2px(560);
+			this.handle_center_y = uni.upx2px(570);
 			this.scaleCurrent = 1;
 			this.rotateCurrent = 0;
 			this.touch_target = '';
@@ -428,16 +458,16 @@ export default {
 			});
 
 			const context = uni.createCanvasContext('default_PosterCanvasId', this);
-			const mask_size = this.cansBorder * this.scale;
-			context.clearRect(0, 0, this.cansBorder, this.cansBorder);
+			const mask_size = uni.upx2px(590);
+			context.clearRect(0, 0, mask_size, mask_size);
 			uni.getImageInfo({
 				src: this.avatarImage,
 				success: response1 => {
-					context.drawImage(response1.path, 0, 0, this.cansBorder, this.cansBorder);
+					context.drawImage(response1.path, 0, 0, mask_size, mask_size);
 					uni.getImageInfo({
 						src: this.currentImage.image_url,
 						success: response2 => {
-							context.translate(this.mask_center_x * 3, this.mask_center_y * 3);
+							context.translate(this.mask_center_x, this.mask_center_y);
 							context.rotate((this.rotate * Math.PI) / 180);
 							context.drawImage(response2.path, -mask_size / 2, -mask_size / 2, mask_size, mask_size);
 							context.draw(false, () => {
@@ -460,7 +490,6 @@ export default {
 					canvasId: this.canvasId,
 					success: res => {
 						this.posterImage = res.tempFilePath;
-						console.log(11111,this.posterImage)
 						this.savefile();
 					},
 					fail(res) {
@@ -532,8 +561,7 @@ export default {
 		 * 头像
 		 */
 		saveImageInfo() {
-			uniCloud
-				.callFunction({
+			uniCloud.callFunction({
 					name: 'images',
 					data: { imageInfo: this.currentImage, type: 'imageUsed' }
 				})
@@ -577,7 +605,7 @@ export default {
 		async postUserInfo(nickName, type) {
 			let that = this;
 			this.code = await this.getWeixinCode();
-			if (type === 'userLogin') {
+			if (type === 'userLogin' || type === 'selectedImage') {
 				uni.showLoading({
 					title: '加载中',
 					mask: true
@@ -594,22 +622,30 @@ export default {
 					if (type === 'userLogin') {
 						uni.hideLoading();
 						this.navOriginal();
-					} else {
-						this.chooseImages()
+					} else if (type === 'selectedImage') {
+						this.chooseImages();
 					}
-				});
+			});
 		},
 		/**
 		 * 选择图片
 		 */
-		chooseImages() {
+		chooseImages(type) {
 			uni.chooseImage({
-			    count: 1, //默认9
-			    sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
-			    sourceType: ['album', 'camera'], //从相册选择
-			    success:  (res)=>  {
-					this.avatarImage =res.tempFilePaths[0]
-			    }
+				count: 1, //默认9
+				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+				sourceType: ['album', 'camera'], //从相册选择
+				success: res => {
+					this.avatarImage = res.tempFilePaths[0];
+					if(type){
+						console.log(this.code)
+						uniCloud
+							.callFunction({
+								name: 'user_mpweixin',
+								data: { code: this.code, avatarImage: this.avatarImage, type }
+							}).then();
+					}
+				}
 			});
 		},
 		navOriginal() {
@@ -817,18 +853,28 @@ export default {
 		display: flex;
 		justify-content: flex-end;
 		align-items: flex-end;
+		padding-top: 20rpx;
 		.history-btn {
 			background-color: transparent;
 			border-width: 0;
-			font-size: 32rpx;
+			font-size: 30rpx;
 			font-weight: bold;
-			color: #FFFFFF;
+			color: #ffffff;
 			display: inline-block;
 			margin-left: 0;
 			margin-right: 0;
+			background: linear-gradient(97.71deg, #ffd01e, #ff8917 60%);
+			height: 70rpx;
+			line-height: 70rpx;
+			border-radius: 40rpx 0 0 40rpx;
+			padding-right: 5rpx;
+			padding-left: 30rpx;
 			.icon-div {
 				display: inline-block;
 				transform: rotateY(180deg);
+				.icon-xiangzuo {
+					font-size: 30rpx;
+				}
 			}
 		}
 		.history-btn::after {
@@ -845,8 +891,8 @@ export default {
 		left: -99999upx;
 		z-index: -99999;
 		.default_PosterCanvasId {
-			width: 1140rpx;
-			height: 1140rpx;
+			width: 590rpx;
+			height: 590rpx;
 		}
 	}
 }

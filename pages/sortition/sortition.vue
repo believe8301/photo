@@ -1,12 +1,13 @@
 <template>
-	<view class="content">
+	<view class="content" :style="{ 'background-image': 'url(' + indexBg.imageUrl + ')' }">
 		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
-		<view class="sign-div">
-			<view class="sign-title">暴富签</view>
-			<view class="sign-content">签语：今年报复</view>
+		<view class="sign-div" v-if="signState">
+			<view class="sign-title">{{ signContent.name }}</view>
+			<view class="sign-content">签语：{{ signContent.content }}</view>
 		</view>
 		<view class="btn-card">
-			<button class="primary-btn" @click.stop="navOriginal()">点击获取你的新年签</button>
+			<button class="primary-btn" v-if="userInfo" @click.stop="getSign()">点击获取你的新年签</button>
+			<button class="primary-btn" v-else open-type="getUserInfo" @click.stop="getUserProfile('userLogin')">点击获取你的新年签</button>
 			<button open-type="share" type="text" class="share-btn" @click.stop>送好友一支新年签</button>
 		</view>
 	</view>
@@ -15,9 +16,118 @@
 <script>
 export default {
 	data() {
-		return {};
+		return {
+			signState: false,
+			code: '',
+			shareInfo: uni.getStorageSync('shareInfo'),
+			indexBg: uni.getStorageSync('background_info') ? uni.getStorageSync('background_info').find(el => el.code === 'sortition_bg') : {},
+			signContent: {},
+			userInfo: uni.getStorageSync('user_info')
+		};
+	},
+	onShareAppMessage: function() {
+		return this.shareInfo;
+	},
+	onShareTimeline: function() {
+		return this.shareInfo;
+	},
+	onLoad() {
+		this.init()
 	},
 	methods: {
+		async init() {
+			this.code = await this.getWeixinCode();
+			
+		},
+		/**
+		 * 获取微信code
+		 */
+		getWeixinCode() {
+			return new Promise((resolve, reject) => {
+				uni.login({
+					provider: 'weixin',
+					success(res) {
+						resolve(res.code);
+					},
+					fail(err) {
+						reject(new Error('微信登录失败'));
+					}
+				});
+			});
+		},
+		/**
+		 * @param {Object} type
+		 * 登录
+		 */
+		async getUserProfile(type) {
+			let _this = this;
+			uni.getUserProfile({
+				desc: '获取您的头像信息',
+				success(result) {
+					let data = {
+						code: _this.code,
+						signature: result.signature,
+						encrypted_data: result.encryptedData,
+						iv: result.iv,
+						userInfo: result.userInfo
+					};
+					_this.postUserInfo(result.userInfo.nickName);
+				},
+				fail(fall) {}
+			});
+		},
+		/**
+		 * @param {Object} nickName
+		 * 存储用户数据
+		 */
+		async postUserInfo(nickName) {
+			let that = this;
+			this.code = await this.getWeixinCode();
+			uni.showLoading({
+				title: '加载中',
+				mask: true
+			});
+			uniCloud
+				.callFunction({
+					name: 'user_mpweixin',
+					data: { code: that.code, nickName, type:'userLogin' }
+				})
+				.then(res => {
+					console.log(res.result)
+					uni.setStorageSync('user_info', res.result);
+					this.userInfo = res.result;
+					this.getSign();
+				})
+				.finally(() => {
+					uni.hideLoading();
+				});
+		},
+		getSign() {
+			uni.showLoading({
+				title: '加载中',
+				mask: true
+			});
+			let { _id: userId } = uni.getStorageSync('user_info');
+			uniCloud
+				.callFunction({
+					name: 'sign',
+					data: { type: 'drawLots', userId }
+				})
+				.then(res => {
+					this.signState = true;
+					this.signContent = res.result;
+					console.log(res); 
+				})
+				.catch(err => {
+					uni.showModal({
+						content: err.message || '请求服务失败',
+						showCancel: false
+					});
+				})
+				.finally(() => {
+					uni.hideLoading();
+				});
+		},
 		/**
 		 * 返回上一页
 		 */
@@ -44,31 +154,35 @@ export default {
 		position: fixed;
 		top: 6vh;
 		left: 30rpx;
-		color: #ffa462;
+		color: #ffffff;
 		font-size: 40rpx;
 		font-weight: bold;
 	}
 	.sign-div {
-		background-color: #ffffff;
-		width: 300rpx;
+		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c186e9f6-0d61-4188-8541-1e9f54daa323.jpg);
+		width: 350rpx;
+		height: 530rpx;
+		background-size: 100% 100%;
 		margin: 80rpx auto 0;
 		padding: 30rpx;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
+		animation: turnY 3s ease-out;
 		.sign-title {
-			writing-mode: vertical-lr;
 			padding-bottom: 20rpx;
 			font-size: 50rpx;
 			font-weight: bold;
 			background-image: -webkit-linear-gradient(90deg, #ffa462, #ff4d42 88.36%);
 			-webkit-text-fill-color: transparent;
 			-webkit-background-clip: text;
+			animation: fade-in 3s ease-out;
 		}
 		.sign-content {
 			font-size: 30rpx;
 			color: #ff4d42;
+			animation: fade-in 3s ease-out;
 		}
 	}
 	.btn-card {
@@ -79,7 +193,7 @@ export default {
 		padding: 50rpx;
 		position: fixed;
 		left: 125rpx;
-		bottom: 300rpx;
+		bottom: 250rpx;
 		.primary-btn {
 			display: inline-block;
 			background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
@@ -96,7 +210,7 @@ export default {
 			background-color: transparent;
 			border-width: 0;
 			font-size: 30rpx;
-			color: #ff4d42;
+			color: #ffa462;
 		}
 		.share-btn::after {
 			border-left-width: 0;
@@ -104,6 +218,22 @@ export default {
 			border-top-width: 0;
 			border-bottom-width: 0;
 		}
+	}
+}
+@keyframes turnY {
+	0% {
+		transform: rotateY(0deg);
+	}
+	100% {
+		transform: rotateY(1080deg);
+	}
+}
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
 	}
 }
 </style>
