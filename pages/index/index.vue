@@ -121,7 +121,7 @@ export default {
 			start_x: 0,
 			start_y: 0,
 			startInfo: 0,
-			cansBorder: uni.upx2px(1770), // 宽度 px
+			cansBorder: uni.upx2px(590), // 宽度 px
 			bgIndex: 0
 		};
 	},
@@ -458,14 +458,13 @@ export default {
 				title: '加载中',
 				mask: true
 			});
-
 			const context = uni.createCanvasContext('default_PosterCanvasId', this);
-			const mask_size = uni.upx2px(590);
-			context.clearRect(0, 0, mask_size, mask_size);
+			const mask_size=this.scale*100
+			context.clearRect(0, 0, this.cansBorder, this.cansBorder);
 			uni.getImageInfo({
 				src: this.avatarImage,
 				success: response1 => {
-					context.drawImage(response1.path, 0, 0, mask_size, mask_size);
+					context.drawImage(response1.path, 0, 0, this.cansBorder, this.cansBorder);
 					uni.getImageInfo({
 						src: this.currentImage.image_url,
 						success: response2 => {
