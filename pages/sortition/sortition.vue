@@ -25,12 +25,12 @@ export default {
 			userInfo: uni.getStorageSync('user_info')
 		};
 	},
-	// onShareAppMessage: function() {
-	// 	return this.shareInfo;
-	// },
-	// onShareTimeline: function() {
-	// 	return this.shareInfo;
-	// },
+	onShareAppMessage: function() {
+		return this.shareInfo;
+	},
+	onShareTimeline: function() {
+		return this.shareInfo;
+	},
 	onLoad() {
 		this.init()
 	},

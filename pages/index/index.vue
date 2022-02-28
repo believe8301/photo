@@ -1,6 +1,6 @@
 <template>
-	<view class="content" :style="{'background-image': 'url('+(indexBg.imageUrl||'')+')'}" @click.native="touchAvatarBg(false)">
-		<view class="hideCanvas"><canvas class="default_PosterCanvasId" canvas-id="default_PosterCanvasId"></canvas></view>
+	<view class="content" :style="{ 'background-image': 'url(' + (indexBg.imageUrl || '') + ')' }" @click.native="touchAvatarBg(false)">
+		<view class="hideCanvas"><canvas class="default_PosterCanvasId" :style="{width:imageScale*cansBorder+'px',height:imageScale*cansBorder+'px'}" canvas-id="default_PosterCanvasId"></canvas></view>
 
 		<view class="image-card">
 			<view class="switch-div"><view class="icon-xiangzuo iconfont" v-if="showSwitch(-1)" @click.stop="switchAvatar(-1)"></view></view>
@@ -93,7 +93,7 @@ export default {
 			userInfo: '',
 			code: '',
 			avatarImage: uni.getStorageSync('avatar_image'),
-			indexBg:  {},
+			indexBg: {},
 			defaultImage: 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg',
 			currentImage: {},
 			currentIndex: 0,
@@ -122,6 +122,7 @@ export default {
 			start_y: 0,
 			startInfo: 0,
 			cansBorder: uni.upx2px(590), // 宽度 px
+			imageScale: 5,
 			bgIndex: 0
 		};
 	},
@@ -258,17 +259,17 @@ export default {
 		 */
 		initBg() {
 			if (uni.getStorageSync('background_info') && uni.getStorageSync('background_info').length) {
-				let info = uni.getStorageSync('background_info')
+				let info = uni.getStorageSync('background_info');
 				this.shareInfo = info.find(el => el.code === 'mpwx_share');
 				this.adInfo = info.find(el => el.code === 'index_ad');
 				this.indexBg = info.find(el => el.code === 'index_bg');
 			} else if (this.bgIndex < 5) {
-				this.bgIndex++
-				setTimeout(()=> {
-					this.initBg()
-				},300)
+				this.bgIndex++;
+				setTimeout(() => {
+					this.initBg();
+				}, 300);
 			} else {
-				this.getShareInfo()
+				this.getShareInfo();
 			}
 		},
 		/**
@@ -459,12 +460,14 @@ export default {
 				mask: true
 			});
 			const context = uni.createCanvasContext('default_PosterCanvasId', this);
-			const mask_size=this.scale*100
+			let cansBorder = this.cansBorder;
+			const mask_size = this.scale * cansBorder;
+			context.scale(this.imageScale, this.imageScale);
 			context.clearRect(0, 0, this.cansBorder, this.cansBorder);
 			uni.getImageInfo({
 				src: this.avatarImage,
 				success: response1 => {
-					context.drawImage(response1.path, 0, 0, this.cansBorder, this.cansBorder);
+					context.drawImage(response1.path, 0, 0, cansBorder, cansBorder);
 					uni.getImageInfo({
 						src: this.currentImage.image_url,
 						success: response2 => {
@@ -484,8 +487,8 @@ export default {
 				{
 					x: 0,
 					y: 0,
-					height: this.cansBorder,
-					width: this.cansBorder,
+					height: this.cansBorder*this.imageScale,
+					width: this.cansBorder*this.imageScale,
 					destWidth: this.cansBorder,
 					destHeight: this.cansBorder,
 					canvasId: this.canvasId,
@@ -562,7 +565,8 @@ export default {
 		 * 头像
 		 */
 		saveImageInfo() {
-			uniCloud.callFunction({
+			uniCloud
+				.callFunction({
 					name: 'images',
 					data: { imageInfo: this.currentImage, type: 'imageUsed' }
 				})
@@ -612,10 +616,12 @@ export default {
 					mask: true
 				});
 			}
-			uniCloud.callFunction({
-				name: 'user_mpweixin',
-				data: { code: that.code, avatarImage: that.avatarImage, nickName, type: type === 'selectedImage'? 'userLogin': type }
-			}).then(res => {
+			uniCloud
+				.callFunction({
+					name: 'user_mpweixin',
+					data: { code: that.code, avatarImage: that.avatarImage, nickName, type: type === 'selectedImage' ? 'userLogin' : type }
+				})
+				.then(res => {
 					uni.setStorageSync('user_info', res.result);
 					this.userInfo = res.result;
 					if (type === 'userLogin') {
@@ -624,30 +630,34 @@ export default {
 					} else if (type === 'selectedImage') {
 						this.chooseImages(type);
 					}
-			});
+				});
 		},
 		/**
 		 * 选择图片
 		 */
 		chooseImages(type) {
-			uni.hideLoading()
+			uni.hideLoading();
 			uni.chooseImage({
 				count: 1, //默认9
 				sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
 				sourceType: ['album', 'camera'], //从相册选择
 				success: res => {
 					let filePath = res.tempFilePaths[0];
-					uniCloud.uploadFile({
-						filePath: filePath,
-						cloudPath: `userChooseImage-${new Date().getTime()}.png`
-					}).then(res => {
-						this.avatarImage = res['fileID'];
-						//获取到上传到云储存的url地址
-						uniCloud.callFunction({
-							name: 'user_mpweixin',
-							data: { userId: this.userInfo._id, avatarImage: this.avatarImage, type }
-						}).then();
-					});
+					uniCloud
+						.uploadFile({
+							filePath: filePath,
+							cloudPath: `userChooseImage-${new Date().getTime()}.png`
+						})
+						.then(res => {
+							this.avatarImage = res['fileID'];
+							//获取到上传到云储存的url地址
+							uniCloud
+								.callFunction({
+									name: 'user_mpweixin',
+									data: { userId: this.userInfo._id, avatarImage: this.avatarImage, type }
+								})
+								.then();
+						});
 				}
 			});
 		},
@@ -894,8 +904,8 @@ export default {
 		left: -99999upx;
 		z-index: -99999;
 		.default_PosterCanvasId {
-			width: 590rpx;
-			height: 590rpx;
+			width: 1180rpx;
+			height: 1180rpx;
 		}
 	}
 }
