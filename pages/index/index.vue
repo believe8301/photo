@@ -1,6 +1,12 @@
 <template>
 	<view class="content" :style="{ 'background-image': 'url(' + (indexBg.imageUrl || '') + ')' }" @click.native="touchAvatarBg(false)">
-		<view class="hideCanvas"><canvas class="default_PosterCanvasId" :style="{width:imageScale*cansBorder+'px',height:imageScale*cansBorder+'px'}" canvas-id="default_PosterCanvasId"></canvas></view>
+		<view class="hideCanvas">
+			<canvas
+				class="default_PosterCanvasId"
+				:style="{ width: imageScale * cansBorder + 'px', height: imageScale * cansBorder + 'px' }"
+				canvas-id="default_PosterCanvasId"
+			></canvas>
+		</view>
 
 		<view class="image-card">
 			<view class="switch-div"><view class="icon-xiangzuo iconfont" v-if="showSwitch(-1)" @click.stop="switchAvatar(-1)"></view></view>
@@ -97,8 +103,8 @@ export default {
 			defaultImage: 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg',
 			currentImage: {},
 			currentIndex: 0,
-			imageList: [],
-			categoriesList: [],
+			imageList: uni.getStorageSync('first_image_list')||[],
+			categoriesList: uni.getStorageSync('image_categories_list') || [],
 			shareInfo: {},
 			adInfo: {},
 			adState: true,
@@ -195,9 +201,10 @@ export default {
 				})
 				.then(res => {
 					this.categoriesList = res.result.data;
+					uni.setStorageSync('image_categories_list', res.result.data);
 					if (this.categoriesList.length > 0) {
 						this.$set(this.categoriesList[0], 'selected', true);
-						this.getImagesList(this.categoriesList[0]._id);
+						this.getImagesList(this.categoriesList[0]._id, '', 'storage');
 					}
 				})
 				.catch(err => {
@@ -214,7 +221,7 @@ export default {
 		 * @param {Object} id
 		 * 获取头像
 		 */
-		getImagesList(id, num) {
+		getImagesList(id, num, state) {
 			uni.showLoading({
 				title: '加载中',
 				mask: true
@@ -226,6 +233,7 @@ export default {
 				})
 				.then(res => {
 					this.imageList = res.result.data;
+					state === 'storage' && uni.setStorageSync('first_image_list', res.result.data);
 					if (this.imageList && this.imageList.length > 0) {
 						if (num < 0) {
 							this.currentImage = this.imageList[this.imageList.length - 1];
@@ -487,8 +495,8 @@ export default {
 				{
 					x: 0,
 					y: 0,
-					height: this.cansBorder*this.imageScale,
-					width: this.cansBorder*this.imageScale,
+					height: this.cansBorder * this.imageScale,
+					width: this.cansBorder * this.imageScale,
 					destWidth: this.cansBorder,
 					destHeight: this.cansBorder,
 					canvasId: this.canvasId,
