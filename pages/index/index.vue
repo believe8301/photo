@@ -1,8 +1,9 @@
 <template>
-	<view class="content" :style="{ 'background-image': 'url(' + (indexBg.imageUrl || '') + ')' }" @click.native="touchAvatarBg(false)">
+	<view class="content" :style="{ 'background-image': 'url(' + (indexBg.imageUrl || '') + ')' }" @touchmove.stop @click.native="touchAvatarBg(false)">
 		<view class="hideCanvas">
 			<canvas
 				class="default_PosterCanvasId"
+				type="2d"
 				:style="{ width: imageScale * cansBorder + 'px', height: imageScale * cansBorder + 'px' }"
 				canvas-id="default_PosterCanvasId"
 			></canvas>
@@ -103,7 +104,7 @@ export default {
 			defaultImage: 'https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c33782ca-cd2f-4bfc-84eb-0713c52f522f.svg',
 			currentImage: {},
 			currentIndex: 0,
-			imageList: uni.getStorageSync('first_image_list')||[],
+			imageList: uni.getStorageSync('first_image_list') || [],
 			categoriesList: uni.getStorageSync('image_categories_list') || [],
 			shareInfo: {},
 			adInfo: {},
@@ -128,7 +129,7 @@ export default {
 			start_y: 0,
 			startInfo: 0,
 			cansBorder: uni.upx2px(590), // 宽度 px
-			imageScale: 5,
+			imageScale: 10,
 			bgIndex: 0
 		};
 	},
@@ -146,6 +147,12 @@ export default {
 		query.exec(res => {
 			this.startInfo = res[0];
 		});
+		// let pixelRatio = 0;
+		// wx.getSystemInfo({
+		// 	success: (res)=>  {
+		// 		this.imageScale = res.pixelRatio;
+		// 	},
+		// });
 	},
 	onShareAppMessage: function() {
 		return this.shareInfo;
@@ -497,9 +504,10 @@ export default {
 					y: 0,
 					height: this.cansBorder * this.imageScale,
 					width: this.cansBorder * this.imageScale,
-					destWidth: this.cansBorder,
-					destHeight: this.cansBorder,
+					destWidth: this.cansBorder * this.imageScale,
+					destHeight: this.cansBorder * this.imageScale,
 					canvasId: this.canvasId,
+					fileType: 'jpg',
 					success: res => {
 						this.posterImage = res.tempFilePath;
 						this.savefile();

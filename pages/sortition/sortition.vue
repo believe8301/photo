@@ -1,9 +1,11 @@
 <template>
 	<view class="content" :style="{ 'background-image': 'url(' + indexBg.imageUrl + ')' }">
 		<view class="iconfont icon-xiangzuo" @click="navBack"></view>
-		<view class="sign-div" v-if="signState">
-			<view class="sign-title">{{ signContent.name }}</view>
-			<view class="sign-content">签语：{{ signContent.content }}</view>
+		<view class="sign-card">
+			<view class="sign-div" :style="{ 'background-image': 'url(' + signBg.imageUrl + ')' }" v-if="signState">
+				<view class="sign-title">{{ signContent.name }}</view>
+				<view class="sign-content">签语：{{ signContent.content }}</view>
+			</view>
 		</view>
 		<view class="btn-card">
 			<button class="primary-btn" v-if="userInfo" @click.stop="getSign()">点击获取你的新年签</button>
@@ -21,6 +23,7 @@ export default {
 			code: '',
 			shareInfo: uni.getStorageSync('shareInfo'),
 			indexBg: uni.getStorageSync('background_info') ? uni.getStorageSync('background_info').find(el => el.code === 'sortition_bg') : {},
+			signBg: uni.getStorageSync('background_info') ? uni.getStorageSync('background_info').find(el => el.code === 'sign_bg') : {},
 			signContent: {},
 			userInfo: uni.getStorageSync('user_info')
 		};
@@ -32,13 +35,13 @@ export default {
 		return this.shareInfo;
 	},
 	onLoad() {
-		this.init()
+		this.init();
 	},
 	methods: {
 		async init() {
 			this.code = await this.getWeixinCode();
-			if(this.userInfo) {
-				this.getSign('onlyGet')
+			if (this.userInfo) {
+				this.getSign('onlyGet');
 			}
 		},
 		/**
@@ -92,7 +95,7 @@ export default {
 			uniCloud
 				.callFunction({
 					name: 'user_mpweixin',
-					data: { code: that.code, nickName, type:'userLogin' }
+					data: { code: that.code, nickName, type: 'userLogin' }
 				})
 				.then(res => {
 					uni.setStorageSync('user_info', res.result);
@@ -104,6 +107,13 @@ export default {
 				});
 		},
 		getSign(setType) {
+			if (this.signState) {
+				uni.showToast({
+					icon: 'none',
+					title: '签语虽好，不可贪多哦~'
+				});
+				return;
+			}
 			uni.showLoading({
 				title: '加载中',
 				mask: true
@@ -112,12 +122,12 @@ export default {
 			uniCloud
 				.callFunction({
 					name: 'sign',
-					data: { type: 'drawLots', userId,setType }
+					data: { type: 'drawLots', userId, setType }
 				})
 				.then(res => {
-					if(res.result) {
-					this.signState = true;
-					this.signContent = res.result;
+					if (res.result && res.result.name) {
+						this.signState = true;
+						this.signContent = res.result;
 					}
 				})
 				.catch(err => {
@@ -144,14 +154,17 @@ export default {
 
 <style lang="scss" scoped>
 .content {
-	padding-top: 160rpx;
+	// padding-top: 160rpx;
 	height: 100vh;
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
 	background-size: 100% 100%;
-	background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/65475d31-c22e-4dcb-85bd-6d3f9099d860.jpg);
 	.icon-xiangzuo {
 		position: fixed;
 		top: 6vh;
@@ -160,31 +173,34 @@ export default {
 		font-size: 40rpx;
 		font-weight: bold;
 	}
-	.sign-div {
-		background-image: url(https://vkceyugu.cdn.bspapp.com/VKCEYUGU-08ecbb66-149e-4d2b-93a0-fa6bc6e0e894/c186e9f6-0d61-4188-8541-1e9f54daa323.jpg);
+	.sign-card {
 		width: 350rpx;
 		height: 530rpx;
-		background-size: 100% 100%;
-		margin: 80rpx auto 0;
-		padding: 30rpx;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		flex-direction: column;
-		animation: turnY 3s ease-out;
-		.sign-title {
-			padding-bottom: 20rpx;
-			font-size: 50rpx;
-			font-weight: bold;
-			background-image: -webkit-linear-gradient(90deg, #ffa462, #ff4d42 88.36%);
-			-webkit-text-fill-color: transparent;
-			-webkit-background-clip: text;
-			animation: fade-in 3s ease-out;
-		}
-		.sign-content {
-			font-size: 30rpx;
-			color: #ff4d42;
-			animation: fade-in 3s ease-out;
+		margin: 80rpx auto 50rpx;
+		.sign-div {
+			padding: 30rpx;
+			height: 100%;
+			width: 100%;
+			background-size: 100% 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+			animation: turnY 3s ease-out;
+			.sign-title {
+				padding-bottom: 20rpx;
+				font-size: 50rpx;
+				font-weight: bold;
+				background-image: -webkit-linear-gradient(90deg, #ffa462, #ff4d42 88.36%);
+				-webkit-text-fill-color: transparent;
+				-webkit-background-clip: text;
+				animation: fade-in 3s ease-out;
+			}
+			.sign-content {
+				font-size: 30rpx;
+				color: #ff4d42;
+				animation: fade-in 3s ease-out;
+			}
 		}
 	}
 	.btn-card {
@@ -193,9 +209,6 @@ export default {
 		align-items: center;
 		flex-direction: column;
 		padding: 50rpx;
-		position: fixed;
-		left: 125rpx;
-		bottom: 250rpx;
 		.primary-btn {
 			display: inline-block;
 			background: linear-gradient(97.71deg, #ffa462, #ff4d42 88.36%);
