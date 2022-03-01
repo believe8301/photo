@@ -3,7 +3,6 @@
 		<view class="hideCanvas">
 			<canvas
 				class="default_PosterCanvasId"
-				type="2d"
 				:style="{ width: imageScale * cansBorder + 'px', height: imageScale * cansBorder + 'px' }"
 				canvas-id="default_PosterCanvasId"
 			></canvas>
